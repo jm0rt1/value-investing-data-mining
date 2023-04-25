@@ -1,0 +1,29 @@
+{
+    "python.languageServer": "Pylance",
+    "editor.formatOnSave": true,
+    "python.analysis.typeCheckingMode": "strict",
+    "editor.accessibilitySupport": "off",
+    "autoDocstring.startOnNewLine": true,
+    "git.autofetch": true,
+    "explorer.confirmDelete": false,
+    "git.enableSmartCommit": true,
+    "git.confirmSync": false,
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    "editor.multiCursorModifier": "ctrlCmd",
+    "jupyter.debugJustMyCode": false,
+    "files.autoSave": "onFocusChange",
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./tests",
+        "-p",
+        "Test*.py"
+    ],
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": true,
+    "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.extraPaths": [
+        "./src"
+    ],
+    "python.terminal.activateEnvironment": true,
+}
