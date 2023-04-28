@@ -7,7 +7,7 @@ import numpy as np
 import sys  # nopep8
 sys.path.insert(
     0, "/Users/James/Library/Mobile Documents/com~apple~CloudDocs/James's Files/Education/Syracuse/Semesters/9. January 2023/CSE 682/Project")
-from src.strategy_system.stocks.alpha_vantage.AlphaVantageClient import AlphaVantageClient  # nopep8
+from value_investing_strategy.strategy_system.stocks.alpha_vantage.AlphaVantageClient import AlphaVantageClient  # nopep8
 
 CACHE_PATH = Path("./scripts/SimpleAlphaVantageCacher/output/json_cache")
 DATA_CACHE_PATH = Path(
