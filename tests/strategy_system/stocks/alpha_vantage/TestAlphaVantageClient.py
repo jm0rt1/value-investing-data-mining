@@ -1,6 +1,6 @@
 from pathlib import Path
 import unittest
-from value_investing_strategy.strategy_system.stocks.alpha_vantage.AlphaVantageClient import AlphaVantageClient, generate_json_file_path
+from value_investing_strategy.strategy_system.stocks.alpha_vantage.alpha_vantage_client import AlphaVantageClient, generate_json_file_path
 
 TEST_SYMBOL = "AAPL"
 TO_FILE_OUT_PATH = Path(

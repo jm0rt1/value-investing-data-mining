@@ -1,7 +1,7 @@
 from pathlib import Path
 import unittest
 
-from value_investing_strategy.strategy_system.stocks.stock.components.BalanceSheet import BalanceReport, BalanceSheet
+from value_investing_strategy.strategy_system.stocks.stock.components.balance_sheet import BalanceReport, BalanceSheet
 
 TEST_PATH = Path(
     "tests/test_files/inputs/strategy_system/stocks/stock/components/AAPL.BalanceSheet.json")

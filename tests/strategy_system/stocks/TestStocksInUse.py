@@ -1,7 +1,7 @@
 
 from pathlib import Path
 import unittest
-from value_investing_strategy.strategy_system.stocks.StocksInUse import StocksInUse
+from value_investing_strategy.strategy_system.stocks.stocks_in_use import StocksInUse
 
 
 class TestStocksInUse(unittest.TestCase):
