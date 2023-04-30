@@ -5,7 +5,7 @@ import abc
 from value_investing_strategy.strategy_system.analysis.QFAnalyzer import QFAnalyzer
 from value_investing_strategy.strategy_system.analysis.RebalancingAnalyzer import RebalancingAnalyzer
 from value_investing_strategy.strategy_system.settings.Settings import Settings
-from value_investing_strategy.strategy_system.stocks.stock.Stock import Stock
+from value_investing_strategy.strategy_system.stocks.stock.stock import Stock
 
 
 class StrategyInterface(abc.ABC):

@@ -3,11 +3,12 @@ import os
 from dataclasses import dataclass
 import math
 from pathlib import Path
-from value_investing_strategy.strategy_system.stocks.stock.components.IncomeStatement import IncomeStatement
-from value_investing_strategy.strategy_system.stocks.stock.components.Earnings import EarningsStatement
-from value_investing_strategy.strategy_system.stocks.stock.components.BalanceSheet import BalanceSheet
-from value_investing_strategy.strategy_system.stocks.stock.components.CashFlow import Cashflow
-from value_investing_strategy.strategy_system.stocks.stock.components.CompanyOverview import CompanyOverview
+from value_investing_strategy.strategy_system.stocks.stock.components.income_statement import IncomeStatement
+from value_investing_strategy.strategy_system.stocks.stock.components.earnings import EarningsStatement
+from value_investing_strategy.strategy_system.stocks.stock.components.balance_sheet import BalanceSheet
+from value_investing_strategy.strategy_system.stocks.stock.components.cash_flow import Cashflow
+from value_investing_strategy.strategy_system.stocks.stock.components.company_overview import CompanyOverview
+import pandas as pd
 
 
 def get_valid_path():
@@ -22,6 +23,7 @@ def get_valid_path():
         grandparent_dir = os.path.dirname(parent_dir)
         great_grandparent_dir = os.path.dirname(grandparent_dir)
         return Path(os.path.join(great_grandparent_dir, "data/SimpleAlphaVantageCacher/output/json_cache/DATA"))
+
 
 PATH_TO_STOCK_DATA = get_valid_path()
 
@@ -63,6 +65,41 @@ class Stock:
     @property
     def graham_number(self):
         return GrahamNumberCalculator(self).run()
+
+    def to_dataframe(self):
+        # Extracting relevant data from financial statements
+        annual_reports = self.income_statement.annual_reports
+        cf_annual_reports = self.cash_flow.annual_reports
+        bs_annual_reports = self.balance_sheet.annual_reports
+
+        # Initializing empty lists for each column in the DataFrame
+        tickers = []
+        fiscal_years = []
+        cash_flows = []
+        book_values = []
+        earnings = []
+
+        # Populating lists with data from financial statements
+        for i, report in enumerate(annual_reports):
+            tickers.append(self.ticker)
+            fiscal_years.append(report.fiscal_date_ending)
+            earnings.append(report.net_income)
+
+        for i, report in enumerate(cf_annual_reports):
+            cash_flows.append(report.operating_cashflow)
+
+        for i, report in enumerate(bs_annual_reports):
+            book_values.append(report.total_shareholder_equity)
+
+        # Creating a DataFrame using the populated lists
+        data = {
+            'Ticker': tickers,
+            'FiscalYear': fiscal_years,
+            'CashFlow': cash_flows,
+            'BookValue': book_values,
+            'Earnings': earnings
+        }
+        return pd.DataFrame(data)
 
 
 @dataclass

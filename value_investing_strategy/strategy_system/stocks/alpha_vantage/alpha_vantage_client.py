@@ -3,7 +3,7 @@ from pathlib import Path
 import requests
 from typing import Optional
 
-from value_investing_strategy.strategy_system.stocks.alpha_vantage.API import API  # nopep8
+from value_investing_strategy.strategy_system.stocks.alpha_vantage.api import API  # nopep8
 
 API_KEY = "UYOGYE4MI3DF16W2"
 

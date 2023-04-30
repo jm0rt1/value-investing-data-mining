@@ -1,6 +1,6 @@
 
 # -*- coding: utf-8 -*-
-from value_investing_strategy.strategy_system.StrategySystem import StrategySystem
+from value_investing_strategy.strategy_system.strategy_system import StrategySystem
 from value_investing_strategy.strategy_system.analysis.Analyzer import Analyzer
 
 

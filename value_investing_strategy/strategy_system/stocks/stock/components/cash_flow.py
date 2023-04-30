@@ -2,11 +2,11 @@
 from __future__ import annotations
 from pathlib import Path
 from typing import Union
-from value_investing_strategy.strategy_system.stocks.stock.components.StockComponent import StockComponent
+from value_investing_strategy.strategy_system.stocks.stock.components.stock_component import StockComponent
 
 
 from dataclasses import dataclass
-from value_investing_strategy.strategy_system.stocks.stock.components.StockComponent import StockComponent
+from value_investing_strategy.strategy_system.stocks.stock.components.stock_component import StockComponent
 
 
 @dataclass
