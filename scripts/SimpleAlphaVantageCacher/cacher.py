@@ -66,7 +66,7 @@ class CountFile:
         self.write(self.count)
 
 
-class DataManager:
+class StockDataRetriever:
     def __init__(self, count_file: CountFile):
         self.count_file = count_file
 
@@ -142,19 +142,9 @@ class DataManager:
 
 
 def main(option: int):
-    list_ = DataManager.get_s_and_p_list()
     count_file = CountFile()
-    data_manager = DataManager(count_file)
-
-    for ticker in list_:
-        if option == 1:
-            data_manager.option_1(ticker)
-        elif option == 2:
-            data_manager.option_2(ticker)
-
-        if data_manager.count_file.count == 500:
-            print("done.")
-            break
+    stock_data_retriever = StockDataRetriever(count_file)
+    stock_data_retriever.process_stock_list(option)
 
 
 if __name__ == "__main__":
