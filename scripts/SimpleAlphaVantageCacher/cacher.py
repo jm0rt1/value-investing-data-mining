@@ -37,7 +37,10 @@ class CountFile:
     def read(self):
         with open(self.file_path, "r") as fp:
             count_str = fp.read()
-            count = int(count_str)
+            if count_str == "":
+                count = 0
+            else:
+                count = int(count_str)
         return count
 
     def verify(self):
