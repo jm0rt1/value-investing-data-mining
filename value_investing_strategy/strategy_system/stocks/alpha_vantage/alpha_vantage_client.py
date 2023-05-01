@@ -138,6 +138,28 @@ class AlphaVantageClient():
         def from_local_file(symbol: str, cache_path: Path):
             pass
 
+    class TimeSeriesMonthly(API):
+        TYPE_STR = "TimeSeriesMonthly"
+        FUNCTION_STR = "TIME_SERIES_MONTHLY"
+
+        @staticmethod
+        def print_json(symbol: str):
+            data = request_data(
+                symbol, AlphaVantageClient.TimeSeriesMonthly.FUNCTION_STR)
+            print(data)
+
+        @staticmethod
+        def to_json_file(symbol: str, path: Path, data: Optional[dict[str, str]] = None):
+            if not data:
+                data = request_data(
+                    symbol, AlphaVantageClient.TimeSeriesMonthly.FUNCTION_STR)
+            save_component(symbol, path, data,
+                           AlphaVantageClient.TimeSeriesMonthly.TYPE_STR)
+
+        @staticmethod
+        def from_local_file(symbol: str, cache_path: Path):
+            pass
+
 
 AVC = AlphaVantageClient
 
