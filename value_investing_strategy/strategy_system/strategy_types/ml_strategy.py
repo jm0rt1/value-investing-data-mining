@@ -1,7 +1,8 @@
 
+from value_investing_strategy.strategy_system.analysis import Analyzer
 from value_investing_strategy.strategy_system.strategy_system import StrategySystem
-from value_investing_strategy.strategy_system.stocks.stock import stock
-
+from value_investing_strategy.strategy_system.stocks.stock.stock import Stock
+import pandas as pd
 class MLStrategy:
 
     def __init__(self, system: StrategySystem):
@@ -23,7 +24,7 @@ class MLStrategy:
         pass
 
 
-    def prepare_stock_data_for_training(self, stocks: List[stock]):
+    def prepare_stock_data_for_training(self, stocks: list[Stock]):
         # Create individual DataFrames for each stock
         stock_dataframes = [stock.to_dataframe() for stock in stocks]
 
@@ -38,3 +39,30 @@ class MLStrategy:
         normalized_data = normalizer.normalize_data()
 
         return normalized_data
+class FeatureEngineer:
+    def __init__(self, data):
+        self.data = data
+
+    def engineer_features(self):
+        self.data['CashFlow_to_BookValue'] = self.data['CashFlow'] / \
+            self.data['BookValue']
+        self.data['Earnings_to_BookValue'] = self.data['Earnings'] / \
+            self.data['BookValue']
+        self.data['CashFlow_to_Earnings'] = self.data['CashFlow'] / \
+            self.data['Earnings']
+
+        return self.data
+
+
+class DataNormalizer:
+    def __init__(self, data):
+        self.data = data
+
+    def normalize_data(self):
+        columns_to_normalize = ['CashFlow', 'BookValue', 'Earnings',
+                                'CashFlow_to_BookValue', 'Earnings_to_BookValue', 'CashFlow_to_Earnings']
+        scaler = StandardScaler()
+        self.data[columns_to_normalize] = scaler.fit_transform(
+            self.data[columns_to_normalize])
+
+        return self.data
