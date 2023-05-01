@@ -1,33 +1,36 @@
 
 
+import logging
 from pathlib import Path
 import time
 import pandas as pd
 import numpy as np
+import tomli
+
 import os
 import sys  # nopep8
 sys.path.insert(
     0, "/Users/James/Library/Mobile Documents/com~apple~CloudDocs/James's Files/Education/Syracuse/Semesters/10. April 2023/CIS 600/Paper")
 from value_investing_strategy.strategy_system.stocks.alpha_vantage.alpha_vantage_client import AlphaVantageClient  # nopep8
 
-CACHE_PATH = Path("./scripts/SimpleAlphaVantageCacher/output/json_cache")
-DATA_CACHE_PATH = Path(
-    "./scripts/SimpleAlphaVantageCacher/output/json_cache/DATA")
-PDB = Path("./scripts/SimpleAlphaVantageCacher/pdb")
-PDB.mkdir(parents=True, exist_ok=True)
-COUNT_FILE_PATH = PDB/"count.txt"
-CACHE_PATH.mkdir(parents=True, exist_ok=True)
 
-DATA_CACHE_PATH.mkdir(parents=True, exist_ok=True)
-COVERED_LIST_PATH = CACHE_PATH/"covered.txt"
-COVERED_LIST_PATH.touch(exist_ok=True)
-COUNT_FILE_PATH.touch(exist_ok=True)
+class Config:
+    def __init__(self, config_path: str):
+        self._config = self.load_config(config_path)
+
+    @staticmethod
+    def load_config(config_path: str) -> dict:
+        with open(config_path, "rb") as f:
+            config = tomli.load(f)
+        return config
+
+    def __getitem__(self, key: str):
+        return self._config[key]
 
 
 class CountFile:
-
-    def __init__(self, file_path: Path = COUNT_FILE_PATH):
-        self.file_path = file_path
+    def __init__(self, config: Config):
+        self.file_path = Path(config['cache']['count_file'])
         self.count = self.read()
 
     def write(self, count: int):
@@ -67,19 +70,12 @@ class CountFile:
 
 
 class StockDataRetriever:
-    def __init__(self, count_file: CountFile):
-        self.count_file = count_file
+    def __init__(self, config: Config):
+        self.config = config
+        self.data_cache_path = Path(config['cache']['data_cache_path'])
+        self.covered_list_path = Path(config['cache']['covered_list_file'])
 
-    def count_and_wait(self):
-        self.count_file += 1
-        if self.count_file % 5 == 0:
-            print(
-                f"count = {self.count_file.count}...  waiting for one minute")
-            time.sleep(60+1)
-        return self.count_file
-
-    @staticmethod
-    def get_s_and_p_list() -> list[str]:
+    def get_s_and_p_list(self) -> list[str]:
         sp500 = pd.read_html(
             'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
         sp500_list = np.array(sp500[0]['Symbol'])
@@ -87,67 +83,72 @@ class StockDataRetriever:
 
     def component_file_exists(self, ticker: str, component_str: str):
         name = f"{ticker}.{component_str}.json"
-        files = os.listdir(DATA_CACHE_PATH)
+        files = os.listdir(self.data_cache_path)
         if name in files:
             return True
         return False
 
     def get_covered_list(self):
-        with open(COVERED_LIST_PATH, "r") as fp:
+        with open(self.covered_list_path, "r") as fp:
             covered = [item.strip() for item in fp.readlines()]
-
         return covered
 
     def add_ticker_to_covered_list(self, ticker: str):
-        with open(COVERED_LIST_PATH, "a") as fp:
+        with open(self.covered_list_path, "a") as fp:
             return fp.write(f"{ticker}\n")
 
-    def option_1(self, ticker: str):
-        calls = [AlphaVantageClient.BalanceSheet.to_json_file,
-                 AlphaVantageClient.IncomeStatement.to_json_file,
-                 AlphaVantageClient.CompanyOverview.to_json_file,
-                 AlphaVantageClient.Earnings.to_json_file,
-                 AlphaVantageClient.CashFlow.to_json_file,
-                 AlphaVantageClient.TimeSeriesMonthly.to_json_file]
+    def option_1(self, ticker: str, count: CountFile):
+        calls = [
+            AlphaVantageClient.BalanceSheet.to_json_file,
+            AlphaVantageClient.IncomeStatement.to_json_file,
+            AlphaVantageClient.CompanyOverview.to_json_file,
+            AlphaVantageClient.Earnings.to_json_file,
+            AlphaVantageClient.CashFlow.to_json_file,
+            AlphaVantageClient.TimeSeriesMonthly.to_json_file
+        ]
 
         if ticker not in self.get_covered_list():
             for func in calls:
-                func(ticker, DATA_CACHE_PATH)
-                self.count_and_wait()
+                func(ticker, self.data_cache_path)
+                count = count_and_wait(count)
 
             self.add_ticker_to_covered_list(ticker)
-            print(f"{ticker} retrieved - API count at: {self.count_file}")
+            logging.info(f"{ticker} retrieved - API count at: {count.count}")
 
-    def option_2(self, ticker: str):
+    def option_2(self, ticker: str, count: CountFile):
         if ticker in self.get_covered_list() and not self.component_file_exists(ticker, AlphaVantageClient.TimeSeriesMonthly.TYPE_STR):
-
             AlphaVantageClient.TimeSeriesMonthly.to_json_file(
-                ticker, DATA_CACHE_PATH)
-            print(f"time series data collected for {ticker}")
-            self.count_and_wait()
+                ticker, self.data_cache_path)
+            logging.info(f"time series data collected for {ticker}")
+            count = count_and_wait(count)
 
-    def retrieve_data_for_ticker(self, ticker: str, option: int):
-        if option == 1:
-            self.option_1(ticker)
-        elif option == 2:
-            self.option_2(ticker)
+    def main(self, option: int):
+        list_ = self.get_s_and_p_list()
+        count_file = CountFile(self.config)
+        for ticker in list_:
+            if option == 1:
+                self.option_1(ticker, count_file)
+            elif option == 2:
+                self.option_2(ticker, count_file)
 
-    def process_stock_list(self, option: int):
-        stock_list = self.get_s_and_p_list()
-        for ticker in stock_list:
-            self.retrieve_data_for_ticker(ticker, option)
-            if self.count_file.count == 500:
-                print("done.")
+            if count_file.count == 500:
+                logging.info("done.")
                 break
 
 
-def main(option: int):
-    count_file = CountFile()
-    stock_data_retriever = StockDataRetriever(count_file)
-    stock_data_retriever.process_stock_list(option)
+def count_and_wait(count: CountFile):
+    count += 1
+    if count % 5 == 0:
+        logging.info(f"count = {count.count}...  waiting for one minute")
+        time.sleep(60 + 1)
+    return count
 
 
 if __name__ == "__main__":
-    print(Path.cwd())
-    main(2)
-    main(1)
+    logging.basicConfig(level=logging.INFO)
+    config_file_path = "scripts/SimpleAlphaVantageCacher/config/cacher_config.toml"
+    config = Config(config_file_path)
+
+    stock_data_retriever = StockDataRetriever(config)
+    stock_data_retriever.main(2)
+    stock_data_retriever.main(1)

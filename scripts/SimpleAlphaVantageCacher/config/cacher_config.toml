@@ -1,0 +1,15 @@
+[api]
+api_key = "your_alpha_vantage_api_key"
+
+[limits]
+daily_api_limit = 500
+
+[cache]
+cache_path = "scripts/SimpleAlphaVantageCacher/output/json_cache"
+data_cache_path = "scripts/SimpleAlphaVantageCacher/output/json_cache/DATA"
+pdb_path = "scripts/SimpleAlphaVantageCacher/pdb"
+covered_list_file = "scripts/SimpleAlphaVantageCacher/output/json_cache/covered.txt"
+count_file = "scripts/SimpleAlphaVantageCacher/pdb/count.txt"
+
+[time]
+wait_time = 61
