@@ -66,82 +66,93 @@ class CountFile:
         self.write(self.count)
 
 
-def count_and_wait(count: CountFile):
-    count += 1
-    if count % 5 == 0:
-        print(f"count = {count.count}...  waiting for one minute")
-        time.sleep(60+1)
-    return count
+class DataManager:
+    def __init__(self, count_file: CountFile):
+        self.count_file = count_file
 
+    def count_and_wait(self):
+        self.count_file += 1
+        if self.count_file % 5 == 0:
+            print(
+                f"count = {self.count_file.count}...  waiting for one minute")
+            time.sleep(60+1)
+        return self.count_file
 
-def get_s_and_p_list() -> list[str]:
-    sp500 = pd.read_html(  # type:ignore
-        'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
-    sp500_list = np.array(sp500[0]['Symbol'])  # type:ignore
-    return list(sp500_list)  # type:ignore
+    @staticmethod
+    def get_s_and_p_list() -> list[str]:
+        sp500 = pd.read_html(
+            'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
+        sp500_list = np.array(sp500[0]['Symbol'])
+        return list(sp500_list)
 
+    def component_file_exists(self, ticker: str, component_str: str):
+        name = f"{ticker}.{component_str}.json"
+        files = os.listdir(DATA_CACHE_PATH)
+        if name in files:
+            return True
+        return False
 
-def component_file_exists(ticker: str, component_str: str):
-    name = f"{ticker}.{component_str}.json"
-    files = os.listdir(DATA_CACHE_PATH)
-    if name in files:
-        return True
-    return False
+    def get_covered_list(self):
+        with open(COVERED_LIST_PATH, "r") as fp:
+            covered = [item.strip() for item in fp.readlines()]
 
+        return covered
 
-def get_covered_list():
-    with open(COVERED_LIST_PATH, "r") as fp:
-        covered = [item.strip() for item in fp.readlines()]
+    def add_ticker_to_covered_list(self, ticker: str):
+        with open(COVERED_LIST_PATH, "a") as fp:
+            return fp.write(f"{ticker}\n")
 
-    return covered
+    def option_1(self, ticker: str):
+        calls = [AlphaVantageClient.BalanceSheet.to_json_file,
+                 AlphaVantageClient.IncomeStatement.to_json_file,
+                 AlphaVantageClient.CompanyOverview.to_json_file,
+                 AlphaVantageClient.Earnings.to_json_file,
+                 AlphaVantageClient.CashFlow.to_json_file,
+                 AlphaVantageClient.TimeSeriesMonthly.to_json_file]
 
+        if ticker not in self.get_covered_list():
+            for func in calls:
+                func(ticker, DATA_CACHE_PATH)
+                self.count_and_wait()
 
-def add_ticker_to_covered_list(ticker: str):
-    with open(COVERED_LIST_PATH, "a") as fp:
-        return fp.write(f"{ticker}\n")
+            self.add_ticker_to_covered_list(ticker)
+            print(f"{ticker} retrieved - API count at: {self.count_file}")
 
+    def option_2(self, ticker: str):
+        if ticker in self.get_covered_list() and not self.component_file_exists(ticker, AlphaVantageClient.TimeSeriesMonthly.TYPE_STR):
 
-def option_1(ticker: str, count: CountFile):
+            AlphaVantageClient.TimeSeriesMonthly.to_json_file(
+                ticker, DATA_CACHE_PATH)
+            print(f"time series data collected for {ticker}")
+            self.count_and_wait()
 
-    calls = [AlphaVantageClient.BalanceSheet.to_json_file,
-             AlphaVantageClient.IncomeStatement.to_json_file,
-             AlphaVantageClient.CompanyOverview.to_json_file,
-             AlphaVantageClient.Earnings.to_json_file,
-             AlphaVantageClient.CashFlow.to_json_file,
-             AlphaVantageClient.TimeSeriesMonthly.to_json_file]
+    def retrieve_data_for_ticker(self, ticker: str, option: int):
+        if option == 1:
+            self.option_1(ticker)
+        elif option == 2:
+            self.option_2(ticker)
 
-    if ticker not in get_covered_list():
-        for func in calls:
-            func(ticker, DATA_CACHE_PATH)
-            count = count_and_wait(count)
-
-        add_ticker_to_covered_list(ticker)
-        print(f"{ticker} retrieved - API count at: {count}")
-    return count
-
-
-def option_2(ticker: str, count: CountFile):
-    if ticker in get_covered_list() and not component_file_exists(ticker, AlphaVantageClient.TimeSeriesMonthly.TYPE_STR):
-
-        AlphaVantageClient.TimeSeriesMonthly.to_json_file(
-            ticker, DATA_CACHE_PATH)
-        print(f"time series data collected for {ticker}")
-        count = count_and_wait(count)
-        pass
-
-    return count
+    def process_stock_list(self, option: int):
+        stock_list = self.get_s_and_p_list()
+        for ticker in stock_list:
+            self.retrieve_data_for_ticker(ticker, option)
+            if self.count_file.count == 500:
+                print("done.")
+                break
 
 
 def main(option: int):
-    list_ = get_s_and_p_list()
-    count_file: CountFile = CountFile()
+    list_ = DataManager.get_s_and_p_list()
+    count_file = CountFile()
+    data_manager = DataManager(count_file)
+
     for ticker in list_:
         if option == 1:
-            count_file = option_1(ticker, count_file)
+            data_manager.option_1(ticker)
         elif option == 2:
-            count_file = option_2(ticker, count_file)
+            data_manager.option_2(ticker)
 
-        if count_file.count == 500:
+        if data_manager.count_file.count == 500:
             print("done.")
             break
 
