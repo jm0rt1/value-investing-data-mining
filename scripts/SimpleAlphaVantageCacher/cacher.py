@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+import shutil
 import time
 from typing import Optional
 import pandas as pd
@@ -109,17 +110,18 @@ class DataCollector:
             AlphaVantageClient.ComponentType.TimeSeriesMonthly: self.alpha_vantage_client.TimeSeriesMonthly.to_json_file
         }
 
-        for component_type, func in calls.items():
-            if not self.alpha_vantage_client.component_file_exists(ticker, self.config.data_cache_path, component_type):
-                func(ticker, self.config.data_cache_path)
-                count = count.increment_and_wait(count)
+        if ticker not in self.covered_list.get():
+            for component_type, func in calls.items():
+                if not self.alpha_vantage_client.component_file_exists(ticker, self.config.data_cache_path, component_type):
+                    func(ticker, self.config.data_cache_path)
+                    count.increment_and_wait(1)
 
-        self.covered_list.add(ticker)
-        logging.info(f"{ticker} retrieved - API count at: {count.count}")
+            self.covered_list.add(ticker)
+            logging.info(f"{ticker} retrieved - API count at: {count.count}")
 
 
 class CoveredList:
-    def init(self, config: Config):
+    def __init__(self, config: Config):
         self.config = config
         self.covered_list_path = config.covered_list_file
         self.covered_list_path.touch(exist_ok=True)
@@ -133,6 +135,17 @@ class CoveredList:
         with open(self.covered_list_path, "a") as fp:
             fp.write(f"{ticker}\n")
 
+    def clear(self):
+        with open(self.covered_list_path, "w") as fp:
+            fp.write("")
+
+    def save_and_clear(self):
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_path = self.config.cache_path / \
+            f"covered_list_backup_{timestamp}.txt"
+        shutil.copy(self.covered_list_path, backup_path)
+        self.clear()
+
 
 class StockDataRetriever:
     def __init__(self, config: Config):
@@ -142,15 +155,14 @@ class StockDataRetriever:
     def main(self):
         list_ = self.data_collector.s_and_p_list.get()
         count_file = CountFile(self.config)
-
         current_date = datetime.datetime.now().date()
-        last_reset_date = count_file.last_reset.date()
-        if current_date > last_reset_date:
-            count_file.reset()
-            logging.info(f"Counter reset due to crossing 12 AM")
 
         while True:
-            all_files_updated = True
+            last_reset_date = count_file.last_reset.date()
+            if current_date > last_reset_date:
+                count_file.reset()
+                logging.info(f"Counter reset due to crossing 12 AM")
+
             for ticker in list_:
                 self.data_collector.update_files(ticker, count_file)
 
@@ -158,22 +170,16 @@ class StockDataRetriever:
                     logging.info("done.")
                     break
 
-                if not all_files_updated:
-                    continue
+            if len(self.data_collector.covered_list.get()) == len(list_):
+                self.data_collector.covered_list.save_and_clear()
 
-                for component_type in AlphaVantageClient.ComponentType:
-                    if not self.data_collector.alpha_vantage_client.component_file_exists(ticker, self.config.data_cache_path, component_type):
-                        all_files_updated = False
-                        break
-
-            if all_files_updated:
-                break
+            current_date = datetime.datetime.now().date()
 
 
-if __name__ == "main":
+if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     config_file_path = "scripts/SimpleAlphaVantageCacher/config/cacher_config.toml"
     config = Config(config_file_path)
+
     stock_data_retriever = StockDataRetriever(config)
-    stock_data_retriever.main(2)
-    stock_data_retriever.main(1)
+    stock_data_retriever.main()
