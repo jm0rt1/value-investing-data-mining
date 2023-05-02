@@ -93,36 +93,29 @@ class SAndPList:
 
 
 class DataCollector:
-    def init(self, config: Config):
+    def __init__(self, config: Config):
         self.config = config
         self.alpha_vantage_client = AlphaVantageClient()
         self.covered_list = CoveredList(config)
         self.s_and_p_list = SAndPList()
 
-    def option_1(self, ticker: str, count: CountFile):
-        calls = [
-            self.alpha_vantage_client.BalanceSheet.to_json_file,
-            self.alpha_vantage_client.IncomeStatement.to_json_file,
-            self.alpha_vantage_client.CompanyOverview.to_json_file,
-            self.alpha_vantage_client.Earnings.to_json_file,
-            self.alpha_vantage_client.CashFlow.to_json_file,
-            self.alpha_vantage_client.TimeSeriesMonthly.to_json_file
-        ]
+    def update_files(self, ticker: str, count: CountFile):
+        calls = {
+            AlphaVantageClient.ComponentType.BalanceSheet: self.alpha_vantage_client.BalanceSheet.to_json_file,
+            AlphaVantageClient.ComponentType.IncomeStatement: self.alpha_vantage_client.IncomeStatement.to_json_file,
+            AlphaVantageClient.ComponentType.CompanyOverview: self.alpha_vantage_client.CompanyOverview.to_json_file,
+            AlphaVantageClient.ComponentType.Earnings: self.alpha_vantage_client.Earnings.to_json_file,
+            AlphaVantageClient.ComponentType.CashFlow: self.alpha_vantage_client.CashFlow.to_json_file,
+            AlphaVantageClient.ComponentType.TimeSeriesMonthly: self.alpha_vantage_client.TimeSeriesMonthly.to_json_file
+        }
 
-        if ticker not in self.covered_list.get():
-            for func in calls:
+        for component_type, func in calls.items():
+            if not self.alpha_vantage_client.component_file_exists(ticker, self.config.data_cache_path, component_type):
                 func(ticker, self.config.data_cache_path)
-                count.increment_and_wait(1)
+                count = count.increment_and_wait(count)
 
-            self.covered_list.add(ticker)
-            logging.info(f"{ticker} retrieved - API count at: {count.count}")
-
-    def option_2(self, ticker: str, count: CountFile):
-        if ticker in self.covered_list.get() and not self.alpha_vantage_client.component_file_exists(ticker, self.config.data_cache_path, AlphaVantageClient.TimeSeriesMonthly.TYPE_STR):
-            self.alpha_vantage_client.TimeSeriesMonthly.to_json_file(
-                ticker, self.config.data_cache_path)
-            logging.info(f"time series data collected for {ticker}")
-            count.increment_and_wait(1)
+        self.covered_list.add(ticker)
+        logging.info(f"{ticker} retrieved - API count at: {count.count}")
 
 
 class CoveredList:
@@ -154,40 +147,27 @@ class StockDataRetriever:
         last_reset_date = count_file.last_reset.date()
         if current_date > last_reset_date:
             count_file.reset()
-            logging.info("Counter reset due to crossing 12 AM")
+            logging.info(f"Counter reset due to crossing 12 AM")
 
         while True:
+            all_files_updated = True
             for ticker in list_:
-                missing_components = []
+                self.data_collector.update_files(ticker, count_file)
 
-                # Check for missing JSON files
-                for component in AlphaVantageClient.COMPONENT_TYPES:
-                    if not self.data_collector.alpha_vantage_client.component_file_exists(ticker, self.config.data_cache_path, component):
-                        missing_components.append(component)
+                if count_file.count == 500:
+                    logging.info("done.")
+                    break
 
-                if missing_components:
-                    for component in missing_components:
-                        # Download missing JSON files
-                        getattr(self.data_collector.alpha_vantage_client, component).to_json_file(
-                            ticker, self.config.data_cache_path)
-                        count_file += 1
+                if not all_files_updated:
+                    continue
 
-                        if count_file.count == 500:
-                            logging.info("API count reached 500. Exiting.")
-                            return
+                for component_type in AlphaVantageClient.ComponentType:
+                    if not self.data_collector.alpha_vantage_client.component_file_exists(ticker, self.config.data_cache_path, component_type):
+                        all_files_updated = False
+                        break
 
-                        if count_file.count % 5 == 0 and count_file.count > 0:
-                            logging.info(
-                                f"count = {count_file.count}...  waiting for one minute")
-                            time.sleep(60 + 1)
-                else:
-                    # All JSON files exist for the current ticker
-                    self.data_collector.covered_list.add(ticker)
-
-            # All tickers covered, resetting covered list
-            with open(self.config.covered_list_file, 'w') as f:
-                f.truncate()
-            logging.info("All tickers covered. Starting a new cycle.")
+            if all_files_updated:
+                break
 
 
 if __name__ == "main":
