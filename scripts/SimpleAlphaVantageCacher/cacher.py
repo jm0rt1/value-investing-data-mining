@@ -1,5 +1,3 @@
-
-
 import logging
 from pathlib import Path
 import time
@@ -17,20 +15,16 @@ from value_investing_strategy.strategy_system.stocks.alpha_vantage.alpha_vantage
 
 class Config:
     def __init__(self, config_path: str = 'config.toml'):
-
         with open(config_path, 'rb') as f:
             config = tomli.load(f)
 
         self.api_key = config['api']['api_key']
-
         self.daily_api_limit = config['limits']['daily_api_limit']
-
         self.cache_path = Path(config['cache']['cache_path'])
         self.data_cache_path = Path(config['cache']['data_cache_path'])
         self.pdb_path = Path(config['cache']['pdb_path'])
         self.covered_list_file = Path(config['cache']['covered_list_file'])
         self.count_file = Path(config['cache']['count_file'])
-
         self.wait_time = config['time']['wait_time']
 
         self.create_directories()
@@ -69,19 +63,19 @@ class CountFile:
         saved_count, _ = self.read()
         return self.count == saved_count
 
-    def __add__(self, value: int):
-        self.count += value
+    def increment_and_wait(self, increment: int):
+        self.count += increment
         self.write(self.count)
-        return self.count
 
-    def __iadd__(self, value: int):
-        self.count += value
-        self.write(self.count)
-        return self
+        current_date = datetime.datetime.now().date()
+        last_reset_date = self.last_reset.date()
+        if current_date > last_reset_date:
+            self.reset()
+            logging.info("Counter reset due to crossing 12 AM")
 
-    def __mod__(self, value: int):
-        result = self.count % value
-        return result
+        if self.count % 5 == 0 and self.count > 0:
+            logging.info(f"count = {self.count}... waiting for one minute")
+            time.sleep(60 + 1)
 
     def reset(self):
         self.count = 0
@@ -99,7 +93,7 @@ class SAndPList:
 
 
 class DataCollector:
-    def __init__(self, config: Config):
+    def init(self, config: Config):
         self.config = config
         self.alpha_vantage_client = AlphaVantageClient()
         self.covered_list = CoveredList(config)
@@ -118,7 +112,7 @@ class DataCollector:
         if ticker not in self.covered_list.get():
             for func in calls:
                 func(ticker, self.config.data_cache_path)
-                count = count_and_wait(count)
+                count.increment_and_wait(1)
 
             self.covered_list.add(ticker)
             logging.info(f"{ticker} retrieved - API count at: {count.count}")
@@ -128,11 +122,11 @@ class DataCollector:
             self.alpha_vantage_client.TimeSeriesMonthly.to_json_file(
                 ticker, self.config.data_cache_path)
             logging.info(f"time series data collected for {ticker}")
-            count = count_and_wait(count)
+            count.increment_and_wait(1)
 
 
 class CoveredList:
-    def __init__(self, config: Config):
+    def init(self, config: Config):
         self.config = config
         self.covered_list_path = config.covered_list_file
         self.covered_list_path.touch(exist_ok=True)
@@ -148,7 +142,7 @@ class CoveredList:
 
 
 class StockDataRetriever:
-    def __init__(self, config: Config):
+    def init(self, config: Config):
         self.config = config
         self.data_collector = DataCollector(config)
 
@@ -160,7 +154,7 @@ class StockDataRetriever:
         last_reset_date = count_file.last_reset.date()
         if current_date > last_reset_date:
             count_file.reset()
-            logging.info(f"Counter reset due to crossing 12 AM")
+            logging.info("Counter reset due to crossing 12 AM")
 
         for ticker in list_:
             if option == 1:
@@ -173,25 +167,10 @@ class StockDataRetriever:
                 break
 
 
-def count_and_wait(count: CountFile):
-    count += 1
-    current_date = datetime.datetime.now().date()
-    last_reset_date = count.last_reset.date()
-    if current_date > last_reset_date:
-        count.reset()
-        logging.info(f"Counter reset due to crossing 12 AM")
-
-    if count.count % 5 == 0 and count.count > 0:
-        logging.info(f"count = {count.count}...  waiting for one minute")
-        time.sleep(60 + 1)
-    return count
-
-
-if __name__ == "__main__":
+if __name__ == "main":
     logging.basicConfig(level=logging.INFO)
     config_file_path = "scripts/SimpleAlphaVantageCacher/config/cacher_config.toml"
     config = Config(config_file_path)
-
     stock_data_retriever = StockDataRetriever(config)
     stock_data_retriever.main(2)
     stock_data_retriever.main(1)
