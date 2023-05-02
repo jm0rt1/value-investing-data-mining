@@ -3,6 +3,26 @@ from datetime import datetime
 
 from value_investing_strategy.strategy_system.stocks.stock.components.time_series import MetaData, MonthlyData, TimeSeriesMonthly
 
+import json
+from pathlib import Path
+
+JSON_DATA = {
+    "Meta Data": {
+        "2. Symbol": "AAPL",
+        "3. Last Refreshed": "2023-01-03",
+        "4. Time Zone": "US/Eastern"
+    },
+    "Monthly Time Series": {
+        "2023-01-03": {
+            "1. open": "100",
+            "2. high": "110",
+            "3. low": "90",
+            "4. close": "105",
+            "5. volume": "1000000"
+        }
+    }
+}
+
 
 class TestTimeSeriesMonthly(unittest.TestCase):
 
@@ -43,6 +63,24 @@ class TestTimeSeriesMonthly(unittest.TestCase):
             initial_date, final_date)
 
         self.assertIsNone(stock_returns)
+
+    def test_from_dict(self):
+
+        time_series_monthly = TimeSeriesMonthly.from_dict(JSON_DATA)
+        self.assertEqual(time_series_monthly.meta_data.symbol, "AAPL")
+        self.assertEqual(time_series_monthly.monthly_time_series[0].close, 105)
+
+    def test_from_json_file(self):
+        json_file_path = Path("test_time_series_monthly.json")
+
+        with open(json_file_path, "w") as f:
+            json.dump(JSON_DATA, f)
+
+        time_series_monthly = TimeSeriesMonthly.from_json_file(json_file_path)
+        self.assertEqual(time_series_monthly.meta_data.symbol, "AAPL")
+        self.assertEqual(time_series_monthly.monthly_time_series[0].close, 105)
+
+        json_file_path.unlink()  # Clean up the created test file
 
 
 if __name__ == "__main__":

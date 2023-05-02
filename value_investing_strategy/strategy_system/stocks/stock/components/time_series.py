@@ -5,6 +5,7 @@ from datetime import datetime
 import pandas as pd
 from dataclasses import dataclass
 from typing import Any, Optional
+from datetime import timedelta
 
 
 @dataclass
@@ -60,6 +61,11 @@ class TimeSeriesMonthly(StockComponent):
     def find_nearest_data(self, target_date: datetime) -> Optional[MonthlyData]:
         dates = [data.date for data in self.monthly_time_series]
         nearest_date = min(dates, key=lambda x: abs(x - target_date))
+
+        # Check if the nearest date is more than two quarters away
+        if abs(nearest_date - target_date) > timedelta(weeks=26):
+            return None
+
         nearest_data = next(
             (data for data in self.monthly_time_series if data.date == nearest_date), None)
         return nearest_data
@@ -68,7 +74,7 @@ class TimeSeriesMonthly(StockComponent):
         initial_data = self.find_nearest_data(initial_date)
         final_data = self.find_nearest_data(final_date)
 
-        if initial_data is None or final_data is None:
+        if initial_data is None or final_data is None or initial_data.date == final_data.date:
             return None
 
         initial_price = initial_data.close
