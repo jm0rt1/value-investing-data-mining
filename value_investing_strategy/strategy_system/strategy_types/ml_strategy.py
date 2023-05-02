@@ -1,5 +1,6 @@
 
 from value_investing_strategy.strategy_system.analysis import Analyzer
+from value_investing_strategy.strategy_system.stocks.stocks_in_use import StocksInUse
 from value_investing_strategy.strategy_system.strategy_system import StrategySystem
 from value_investing_strategy.strategy_system.stocks.stock.stock import Stock
 import pandas as pd
@@ -24,12 +25,13 @@ class MLStrategy:
         pass
 
 
-    def prepare_stock_data_for_training(self, stocks: list[Stock]):
+    def prepare_stock_data_for_training(self, stocks: StocksInUse):
+        if stocks.stocks is None:
+            raise TypeError("stocks not initialized")
         # Create individual DataFrames for each stock
-        stock_dataframes = [stock.to_dataframe() for stock in stocks]
-
+        stock_dataframes = stocks.to_data_frame()
         # Concatenate individual DataFrames into a single DataFrame
-        combined_data = pd.concat(stock_dataframes, ignore_index=True)
+
 
         # Feature engineering and normalization
         feature_engineer = FeatureEngineer(combined_data)
