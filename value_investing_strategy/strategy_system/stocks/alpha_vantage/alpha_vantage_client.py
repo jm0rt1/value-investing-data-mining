@@ -1,3 +1,4 @@
+from enum import Enum, auto
 import json
 import os
 from pathlib import Path
@@ -25,9 +26,18 @@ class AlphaVantageClientError(Exception):
 
 
 class AlphaVantageClient():
+
+    class ComponentType(Enum):
+        BalanceSheet = auto()
+        IncomeStatement = auto()
+        CompanyOverview = auto()
+        Earnings = auto()
+        CashFlow = auto()
+        TimeSeriesMonthly = auto()
+
     @staticmethod
-    def component_file_exists(ticker: str, data_cache_path: Path, component_str: str):
-        name = f"{ticker}.{component_str}.json"
+    def component_file_exists(ticker: str, data_cache_path: Path, component_type: ComponentType):
+        name = f"{ticker}.{component_type.name}.json"
         files = os.listdir(data_cache_path)
         if name in files:
             return True
