@@ -155,6 +155,13 @@ class StockDataRetriever:
     def main(self, option: int):
         list_ = self.data_collector.s_and_p_list.get()
         count_file = CountFile(self.config)
+
+        current_date = datetime.datetime.now().date()
+        last_reset_date = count_file.last_reset.date()
+        if current_date > last_reset_date:
+            count_file.reset()
+            logging.info(f"Counter reset due to crossing 12 AM")
+
         for ticker in list_:
             if option == 1:
                 self.data_collector.option_1(ticker, count_file)
@@ -174,7 +181,7 @@ def count_and_wait(count: CountFile):
         count.reset()
         logging.info(f"Counter reset due to crossing 12 AM")
 
-    if count.count % 5 == 0:
+    if count.count % 5 == 0 and count.count > 0:
         logging.info(f"count = {count.count}...  waiting for one minute")
         time.sleep(60 + 1)
     return count
