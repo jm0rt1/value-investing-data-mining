@@ -125,8 +125,8 @@ class DataCollector:
 
     def option_2(self, ticker: str, count: CountFile):
         if ticker in self.covered_list.get() and not self.alpha_vantage_client.component_file_exists(ticker, self.config.data_cache_path, AlphaVantageClient.TimeSeriesMonthly.TYPE_STR):
-            # self.alpha_vantage_client.TimeSeriesMonthly.to_json_file(
-            #     ticker, self.config.data_cache_path)
+            self.alpha_vantage_client.TimeSeriesMonthly.to_json_file(
+                ticker, self.config.data_cache_path)
             logging.info(f"time series data collected for {ticker}")
             count = count_and_wait(count)
 
@@ -187,4 +187,4 @@ if __name__ == "__main__":
 
     stock_data_retriever = StockDataRetriever(config)
     stock_data_retriever.main(2)
-    # stock_data_retriever.main(1)
+    stock_data_retriever.main(1)
