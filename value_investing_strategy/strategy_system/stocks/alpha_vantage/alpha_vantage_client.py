@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 import requests
 from typing import Optional
@@ -24,6 +25,13 @@ class AlphaVantageClientError(Exception):
 
 
 class AlphaVantageClient():
+    @staticmethod
+    def component_file_exists(ticker: str, data_cache_path: Path, component_str: str):
+        name = f"{ticker}.{component_str}.json"
+        files = os.listdir(data_cache_path)
+        if name in files:
+            return True
+        return False
 
     class IncomeStatement(API):
         TYPE_STR = "IncomeStatement"
