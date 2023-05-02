@@ -41,7 +41,7 @@ class Config:
 class CountFile:
     def __init__(self, config: Config):
         self.file_path = Path(config.count_file)
-        self.count, self.last_reset = self.read()
+        self.count, self.last_reset, self.timestamps = self.read()
 
     def read(self):
         with open(self.file_path, "r") as fp:
@@ -49,39 +49,44 @@ class CountFile:
             if not lines:
                 count = 0
                 last_reset = datetime.datetime.now()
+                timestamps = []
             else:
                 count = int(lines[0].strip())
                 last_reset = datetime.datetime.fromisoformat(lines[1].strip())
-        return count, last_reset
+                timestamps = [datetime.datetime.fromisoformat(
+                    ts.strip()) for ts in lines[2:]]
+        return count, last_reset, timestamps
 
-    def write(self, count: int, last_reset: Optional[datetime.datetime] = None):
-        if last_reset is None:
-            last_reset = self.last_reset
+    def write(self):
         with open(self.file_path, "w") as fp:
-            fp.write(f"{count}\n{last_reset.isoformat()}")
+            fp.write(f"{self.count}\n{self.last_reset.isoformat()}\n")
+            fp.writelines([f"{ts.isoformat()}\n" for ts in self.timestamps])
 
-    def verify(self):
-        saved_count, _ = self.read()
-        return self.count == saved_count
+    def increment_and_wait(self, value: int):
+        self.count += value
+        now = datetime.datetime.now()
 
-    def increment_and_wait(self, increment: int):
-        self.count += increment
-        self.write(self.count)
+        # Remove timestamps older than 1 minute
+        self.timestamps = [
+            ts for ts in self.timestamps if now - ts < datetime.timedelta(minutes=1)]
 
-        current_date = datetime.datetime.now().date()
-        last_reset_date = self.last_reset.date()
-        if current_date > last_reset_date:
-            self.reset()
-            logging.info("Counter reset due to crossing 12 AM")
+        # Append the current timestamp
+        self.timestamps.append(now)
 
-        if self.count % 5 == 0 and self.count > 0:
-            logging.info(f"count = {self.count}... waiting for one minute")
-            time.sleep(60 + 1)
+        if len(self.timestamps) >= 5:
+            wait_time = 60 - (now - self.timestamps[-5]).seconds
+            if wait_time > 0:
+                logging.info(
+                    f"count = {self.count}...  waiting for {wait_time} seconds")
+                time.sleep(wait_time + 1)
+
+        self.write()
 
     def reset(self):
         self.count = 0
         self.last_reset = datetime.datetime.now()
-        self.write(self.count, self.last_reset)
+        self.timestamps = []  # Clear the timestamps list on reset
+        self.write()
 
 
 class SAndPList:
@@ -114,6 +119,8 @@ class DataCollector:
             for component_type, func in calls.items():
                 if not self.alpha_vantage_client.component_file_exists(ticker, self.config.data_cache_path, component_type):
                     func(ticker, self.config.data_cache_path)
+                    logging.info(
+                        f"{ticker} {component_type.value} file downloaded")
                     count.increment_and_wait(1)
 
             self.covered_list.add(ticker)
