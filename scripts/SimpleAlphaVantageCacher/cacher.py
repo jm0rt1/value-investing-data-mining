@@ -142,11 +142,11 @@ class CoveredList:
 
 
 class StockDataRetriever:
-    def init(self, config: Config):
+    def __init__(self, config: Config):
         self.config = config
         self.data_collector = DataCollector(config)
 
-    def main(self, option: int):
+    def main(self):
         list_ = self.data_collector.s_and_p_list.get()
         count_file = CountFile(self.config)
 
@@ -156,15 +156,38 @@ class StockDataRetriever:
             count_file.reset()
             logging.info("Counter reset due to crossing 12 AM")
 
-        for ticker in list_:
-            if option == 1:
-                self.data_collector.option_1(ticker, count_file)
-            elif option == 2:
-                self.data_collector.option_2(ticker, count_file)
+        while True:
+            for ticker in list_:
+                missing_components = []
 
-            if count_file.count == 500:
-                logging.info("done.")
-                break
+                # Check for missing JSON files
+                for component in AlphaVantageClient.COMPONENT_TYPES:
+                    if not self.data_collector.alpha_vantage_client.component_file_exists(ticker, self.config.data_cache_path, component):
+                        missing_components.append(component)
+
+                if missing_components:
+                    for component in missing_components:
+                        # Download missing JSON files
+                        getattr(self.data_collector.alpha_vantage_client, component).to_json_file(
+                            ticker, self.config.data_cache_path)
+                        count_file += 1
+
+                        if count_file.count == 500:
+                            logging.info("API count reached 500. Exiting.")
+                            return
+
+                        if count_file.count % 5 == 0 and count_file.count > 0:
+                            logging.info(
+                                f"count = {count_file.count}...  waiting for one minute")
+                            time.sleep(60 + 1)
+                else:
+                    # All JSON files exist for the current ticker
+                    self.data_collector.covered_list.add(ticker)
+
+            # All tickers covered, resetting covered list
+            with open(self.config.covered_list_file, 'w') as f:
+                f.truncate()
+            logging.info("All tickers covered. Starting a new cycle.")
 
 
 if __name__ == "main":
