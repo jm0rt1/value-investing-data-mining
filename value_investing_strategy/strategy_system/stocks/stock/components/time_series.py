@@ -1,7 +1,7 @@
 from pathlib import Path
 from value_investing_strategy.strategy_system.stocks.stock.components.stock_component import StockComponent
 
-
+import pandas as pd
 from dataclasses import dataclass
 from typing import Any, Optional
 
@@ -54,3 +54,25 @@ class TimeSeriesMonthly(StockComponent):
     def from_json_file(cls, path: Path) -> "TimeSeriesMonthly":
         data = cls.load_json_dict(path)
         return cls.from_dict(data)
+
+    def find_nearest_data(self, target_date: str) -> Optional[MonthlyData]:
+        target_date = pd.to_datetime(target_date)
+        dates = [pd.to_datetime(data.date)
+                 for data in self.monthly_time_series]
+        nearest_date = min(dates, key=lambda x: abs(x - target_date))
+        nearest_data = next((data for data in self.monthly_time_series if pd.to_datetime(
+            data.date) == nearest_date), None)
+        return nearest_data
+
+    def calculate_stock_returns(self, initial_date: str, final_date: str) -> Optional[float]:
+        initial_data = self.find_nearest_data(initial_date)
+        final_data = self.find_nearest_data(final_date)
+
+        if initial_data is None or final_data is None:
+            return None
+
+        initial_price = initial_data.close
+        final_price = final_data.close
+
+        stock_returns = (final_price - initial_price) / initial_price
+        return stock_returns
