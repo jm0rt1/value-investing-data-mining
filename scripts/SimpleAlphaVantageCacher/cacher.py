@@ -3,10 +3,11 @@
 import logging
 from pathlib import Path
 import time
+from typing import Optional
 import pandas as pd
 import numpy as np
 import tomli
-
+import datetime
 import os
 import sys  # nopep8
 sys.path.insert(
@@ -45,23 +46,27 @@ class Config:
 class CountFile:
     def __init__(self, config: Config):
         self.file_path = Path(config.count_file)
-        self.count = self.read()
-
-    def write(self, count: int):
-        with open(self.file_path, "w") as fp:
-            fp.write(str(count))
+        self.count, self.last_reset = self.read()
 
     def read(self):
         with open(self.file_path, "r") as fp:
-            count_str = fp.read()
-            if count_str == "":
+            lines = fp.readlines()
+            if not lines:
                 count = 0
+                last_reset = datetime.datetime.now()
             else:
-                count = int(count_str)
-        return count
+                count = int(lines[0].strip())
+                last_reset = datetime.datetime.fromisoformat(lines[1].strip())
+        return count, last_reset
+
+    def write(self, count: int, last_reset: Optional[datetime.datetime] = None):
+        if last_reset is None:
+            last_reset = self.last_reset
+        with open(self.file_path, "w") as fp:
+            fp.write(f"{count}\n{last_reset.isoformat()}")
 
     def verify(self):
-        saved_count = self.read()
+        saved_count, _ = self.read()
         return self.count == saved_count
 
     def __add__(self, value: int):
@@ -80,7 +85,8 @@ class CountFile:
 
     def reset(self):
         self.count = 0
-        self.write(self.count)
+        self.last_reset = datetime.datetime.now()
+        self.write(self.count, self.last_reset)
 
 
 class SAndPList:
@@ -119,8 +125,8 @@ class DataCollector:
 
     def option_2(self, ticker: str, count: CountFile):
         if ticker in self.covered_list.get() and not self.alpha_vantage_client.component_file_exists(ticker, self.config.data_cache_path, AlphaVantageClient.TimeSeriesMonthly.TYPE_STR):
-            self.alpha_vantage_client.TimeSeriesMonthly.to_json_file(
-                ticker, self.config.data_cache_path)
+            # self.alpha_vantage_client.TimeSeriesMonthly.to_json_file(
+            #     ticker, self.config.data_cache_path)
             logging.info(f"time series data collected for {ticker}")
             count = count_and_wait(count)
 
@@ -162,7 +168,13 @@ class StockDataRetriever:
 
 def count_and_wait(count: CountFile):
     count += 1
-    if count % 5 == 0:
+    current_date = datetime.datetime.now().date()
+    last_reset_date = count.last_reset.date()
+    if current_date > last_reset_date:
+        count.reset()
+        logging.info(f"Counter reset due to crossing 12 AM")
+
+    if count.count % 5 == 0:
         logging.info(f"count = {count.count}...  waiting for one minute")
         time.sleep(60 + 1)
     return count
@@ -175,4 +187,4 @@ if __name__ == "__main__":
 
     stock_data_retriever = StockDataRetriever(config)
     stock_data_retriever.main(2)
-    stock_data_retriever.main(1)
+    # stock_data_retriever.main(1)
