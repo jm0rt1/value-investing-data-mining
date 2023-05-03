@@ -1,0 +1,83 @@
+{
+    "symbol": "OGN",
+    "annualEarnings": [
+        {
+            "fiscalDateEnding": "2023-03-31",
+            "reportedEPS": "0"
+        },
+        {
+            "fiscalDateEnding": "2022-12-31",
+            "reportedEPS": "5.03"
+        },
+        {
+            "fiscalDateEnding": "2021-12-31",
+            "reportedEPS": "6.34"
+        }
+    ],
+    "quarterlyEarnings": [
+        {
+            "fiscalDateEnding": "2022-12-31",
+            "reportedDate": "2023-02-16",
+            "reportedEPS": "0.81",
+            "estimatedEPS": "0.9",
+            "surprise": "-0.09",
+            "surprisePercentage": "-10"
+        },
+        {
+            "fiscalDateEnding": "2022-09-30",
+            "reportedDate": "2022-11-03",
+            "reportedEPS": "1.32",
+            "estimatedEPS": "1.09",
+            "surprise": "0.23",
+            "surprisePercentage": "21.1009"
+        },
+        {
+            "fiscalDateEnding": "2022-06-30",
+            "reportedDate": "2022-08-04",
+            "reportedEPS": "1.25",
+            "estimatedEPS": "1.16",
+            "surprise": "0.09",
+            "surprisePercentage": "7.7586"
+        },
+        {
+            "fiscalDateEnding": "2022-03-31",
+            "reportedDate": "2022-05-05",
+            "reportedEPS": "1.65",
+            "estimatedEPS": "1.3",
+            "surprise": "0.35",
+            "surprisePercentage": "26.9231"
+        },
+        {
+            "fiscalDateEnding": "2021-12-31",
+            "reportedDate": "2022-02-17",
+            "reportedEPS": "1.37",
+            "estimatedEPS": "1.24",
+            "surprise": "0.13",
+            "surprisePercentage": "10.4839"
+        },
+        {
+            "fiscalDateEnding": "2021-09-30",
+            "reportedDate": "2021-11-11",
+            "reportedEPS": "1.67",
+            "estimatedEPS": "1.44",
+            "surprise": "0.23",
+            "surprisePercentage": "15.9722"
+        },
+        {
+            "fiscalDateEnding": "2021-06-30",
+            "reportedDate": "2021-08-12",
+            "reportedEPS": "1.72",
+            "estimatedEPS": "1.4",
+            "surprise": "0.32",
+            "surprisePercentage": "22.8571"
+        },
+        {
+            "fiscalDateEnding": "2021-03-31",
+            "reportedDate": "2021-06-21",
+            "reportedEPS": "1.58",
+            "estimatedEPS": "1.52",
+            "surprise": "0.06",
+            "surprisePercentage": "3.9474"
+        }
+    ]
+}
