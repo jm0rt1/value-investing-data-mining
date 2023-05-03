@@ -6,7 +6,7 @@ daily_api_limit = 500
 
 [cache]
 cache_path = "value_investing_strategy/data/SimpleAlphaVantageCacher/output/json_cache"
-data_cache_path = "value_investing_strategy/data/SimpleAlphaVantageCacher/output/DATA"
+data_cache_path = "value_investing_strategy/data/SimpleAlphaVantageCacher/output/json_cache/DATA"
 pdb_path = "value_investing_strategy/data/SimpleAlphaVantageCacher/pdb"
 covered_list_file = "value_investing_strategy/data/SimpleAlphaVantageCacher/output/json_cache/covered.txt"
 count_file = "value_investing_strategy/data/SimpleAlphaVantageCacher/pdb/count.txt"
