@@ -185,7 +185,7 @@ class StockDataRetriever:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    config_file_path = "scripts/SimpleAlphaVantageCacher/config/cacher_config.toml"
+    config_file_path = "value_investing_strategy/data/SimpleAlphaVantageCacher/config/cacher_config.toml"
     config = Config(config_file_path)
 
     stock_data_retriever = StockDataRetriever(config)
