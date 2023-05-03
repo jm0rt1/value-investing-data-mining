@@ -14,11 +14,11 @@ class BaseModel:
         self.model = model
 
     def preprocess_data(self, data):
-        data['Earnings_to_Book_Value'] = data['Earnings'] / data['Book_Value']
+        data['Earnings_to_Book_Value'] = data['Earnings'] / data['BookValue']
 
-        X = data[['Cash_Flow', 'Book_Value',
+        X = data[['CashFlow', 'BookValue',
                   'Earnings', 'Earnings_to_Book_Value']]
-        y = data['Stock_Returns']
+        y = data['5YrReturn%']
 
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.2, random_state=42)
@@ -48,6 +48,14 @@ class BaseModel:
     def cross_val(self, X, y, cv=5):
         scores = cross_val_score(self.model, X, y, cv=cv)
         return np.mean(scores)
+
+    # Add selector as an argument in predict_single_stock_return method
+    def predict_single_stock_return(self, stock_data, selector):
+        scaler = self.scaler
+        stock_data_scaled = scaler.transform(stock_data)
+        stock_data_selected = selector.transform(
+            stock_data_scaled)  # Apply feature selection
+        return self.model.predict(stock_data_selected)
 
 
 class LinearRegressionModel(BaseModel):
@@ -95,6 +103,8 @@ class StockReturnPredictor:
 
         for name, model in models:
             X_train, X_test, y_train, y_test = model.preprocess_data(data)
+            # Save the scaler for later use in prediction
+            model.scaler = StandardScaler().fit(X_train)
             selector = model.feature_selection(X_train, y_train, n_features=3)
             X_train_selected = selector.transform(X_train)
             X_test_selected = selector.transform(X_test)
@@ -110,7 +120,25 @@ class StockReturnPredictor:
             print(f"Cross-validation score: {cv_score:.2f}")
             print("-----------------------------")
 
+            # Predict the next 5 years return for each stock
+            unique_tickers = data['Ticker'].unique()
+            print(f"Predicted 5-year returns for {name}:")
+            for ticker in unique_tickers:
+                stock_data = data[data['Ticker'] == ticker]
+                # Use the most recent data for prediction
+                stock_data = stock_data.iloc[0]
+                stock_features = stock_data[[
+                    'CashFlow', 'BookValue', 'Earnings']].to_numpy().reshape(1, -1)
+                # Calculate Earnings_to_Book_Value
+                stock_features = np.column_stack(
+                    (stock_features, stock_features[:, 2] / stock_features[:, 1]))
+               # Pass selector to predict_single_stock_return method
+                predicted_return = model.predict_single_stock_return(
+                    stock_features, selector)
+                # ...
+                print(f"{ticker}: {predicted_return[0]:.2f}")
+
 
 if __name__ == "__main__":
-    predictor = StockReturnPredictor('your_data.csv')
+    predictor = StockReturnPredictor('out.csv')
     predictor.run()
