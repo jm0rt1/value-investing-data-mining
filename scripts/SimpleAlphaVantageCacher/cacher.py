@@ -120,7 +120,7 @@ class DataCollector:
                 if not self.alpha_vantage_client.component_file_exists(ticker, self.config.data_cache_path, component_type):
                     func(ticker, self.config.data_cache_path)
                     logging.info(
-                        f"{ticker} {component_type.value} file downloaded")
+                        f"{ticker} {component_type.name} file downloaded")
                     count.increment_and_wait(1)
 
             self.covered_list.add(ticker)
