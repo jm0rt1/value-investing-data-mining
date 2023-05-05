@@ -1,13 +1,15 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split, RandomizedSearchCV, cross_val_score
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.feature_selection import RFE
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, PowerTransformer
 from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.pipeline import Pipeline
 import warnings
+from tqdm import tqdm  # Import the tqdm package
 
 warnings.filterwarnings('ignore')
 
@@ -63,7 +65,10 @@ class BaseModel:
         self.model.fit(X_train, y_train)
 
     def predict(self, X_test):
-        return self.model.predict(X_test)
+        y_pred = []
+        for i in tqdm(range(len(X_test)), desc="Predicting", unit="sample"):
+            y_pred.append(self.model.predict(X_test[i].reshape(1, -1))[0])
+        return np.array(y_pred)
 
     def evaluate(self, y_test, y_pred):
         mse = mean_squared_error(y_test, y_pred)
@@ -134,15 +139,19 @@ class StockReturnPredictor:
             ('Support Vector Machine', SupportVectorMachineModel())
         ]
 
-        for name, model in models:
+        # Add a progress bar for the entire process
+        for name, model in tqdm(models, desc="Models", unit="model"):
             X_train, X_test, y_train, y_test = model.preprocess_data(data)
-            # Save the scaler for later use in prediction
             model.scaler = StandardScaler().fit(X_train)
             selector = model.feature_selection(X_train, y_train, n_features=3)
             X_train_selected = selector.transform(X_train)
             X_test_selected = selector.transform(X_test)
 
-            model.train(X_train_selected, y_train)
+            # Wrap the training step with tqdm to show progress
+            with tqdm(total=1, desc=f"Training {name}", unit="step"):
+                model.train(X_train_selected, y_train)
+                tqdm.write("Training complete")
+
             y_pred = model.predict(X_test_selected)
             mse, r2 = model.evaluate(y_test, y_pred)
             cv_score = model.cross_val(X_train_selected, y_train)
