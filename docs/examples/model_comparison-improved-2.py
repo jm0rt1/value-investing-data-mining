@@ -70,7 +70,13 @@ class BaseModel:
 
 class LinearRegressionModel(BaseModel):
     def __init__(self):
-        super().__init__(LinearRegression())
+        model = Pipeline([('regressor', Ridge())])
+        param_dist = {
+            'regressor__alpha': np.logspace(-3, 3, 7)
+        }
+        random_search = RandomizedSearchCV(
+            model, param_dist, n_iter=7, cv=5, n_jobs=-1, random_state=42)
+        super().__init__(random_search)
 
 
 class RandomForestModel(BaseModel):
