@@ -28,9 +28,18 @@ class StocksInUse:
     def to_data_frame(self):
         if self.stocks is None:
             raise TypeError("Stocks is unitialized")
-        stock_dataframes = [stock.to_dataframe() for stock in self.stocks]
-        combined_data = pd.concat(  # type:ignore
-            stock_dataframes, ignore_index=True)  # type:ignore
+        try:
+            stock_dataframes = []
+            for stock in self.stocks:
+                try:
+                    stock_df = stock.to_dataframe()
+                except Exception as e:
+                    raise e
+                stock_dataframes.append(stock_df)
+            combined_data = pd.concat(  # type:ignore
+                stock_dataframes, ignore_index=True)  # type:ignore
+        except Exception as e:
+            raise e
         return combined_data
 
     def is_stock_loaded(self, ticker: str):

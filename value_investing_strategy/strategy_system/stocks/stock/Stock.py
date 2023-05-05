@@ -10,6 +10,8 @@ from value_investing_strategy.strategy_system.stocks.stock.components.cash_flow 
 from value_investing_strategy.strategy_system.stocks.stock.components.company_overview import CompanyOverview
 import pandas as pd
 
+from value_investing_strategy.strategy_system.stocks.stock.components.time_series import TimeSeriesMonthly
+
 
 def get_valid_path():
 
@@ -37,6 +39,7 @@ class Stock:
     balance_sheet: BalanceSheet
     cash_flow: Cashflow
     company_overview: CompanyOverview
+    time_series_monthly: TimeSeriesMonthly
     last_updated = None
     symbol = None
     intrinsic_value = None
@@ -58,9 +61,11 @@ class Stock:
             paths.cash_flow_file_path)
         company_overview: CompanyOverview = CompanyOverview.from_json_file(
             paths.company_overview_file_path)
+        time_series_monthly: TimeSeriesMonthly = TimeSeriesMonthly.from_json_file(
+            paths.time_series_monthly_file_path)
 
         return cls(ticker, income_statement, earnings,
-                   balance_sheet, cash_flow, company_overview)
+                   balance_sheet, cash_flow, company_overview, time_series_monthly)
 
     @property
     def graham_number(self):
@@ -81,15 +86,30 @@ class Stock:
 
         # Populating lists with data from financial statements
         for i, report in enumerate(annual_reports):
+            fiscal_year = report.fiscal_date_ending
+
+            # Find matching cash flow report
+            cf_report = next(
+                (r for r in cf_annual_reports if r.fiscal_date_ending == fiscal_year), None)
+            if cf_report is None:
+                continue
+
+            # Find matching balance sheet report
+            bs_report = next(
+                (r for r in bs_annual_reports if r.fiscal_date_ending == fiscal_year), None)
+            if bs_report is None:
+                continue
+
             tickers.append(self.ticker)
-            fiscal_years.append(report.fiscal_date_ending)
+            fiscal_years.append(fiscal_year)
             earnings.append(report.net_income)
+            cash_flows.append(cf_report.operating_cashflow)
+            book_values.append(bs_report.total_shareholder_equity)
 
-        for i, report in enumerate(cf_annual_reports):
-            cash_flows.append(report.operating_cashflow)
-
-        for i, report in enumerate(bs_annual_reports):
-            book_values.append(report.total_shareholder_equity)
+        five_year_return = self.time_series_monthly.calculate_stock_returns(
+            pd.to_datetime(fiscal_years[0]), pd.to_datetime(fiscal_years[-1]))
+        if five_year_return is None:
+            five_year_return = 0
 
         # Creating a DataFrame using the populated lists
         data = {
@@ -97,9 +117,13 @@ class Stock:
             'FiscalYear': fiscal_years,
             'CashFlow': cash_flows,
             'BookValue': book_values,
-            'Earnings': earnings
+            'Earnings': earnings,
+            '5YrReturn%': [five_year_return * 100] * len(tickers)
         }
-        return pd.DataFrame(data)
+        try:
+            return pd.DataFrame(data)
+        except Exception as e:
+            raise e
 
 
 @dataclass
@@ -109,6 +133,7 @@ class DataPaths():
     balance_sheet_file_path: Path
     cash_flow_file_path: Path
     company_overview_file_path: Path
+    time_series_monthly_file_path: Path
 
     @classmethod
     def build_paths(cls, ticker: str, base_path: Path):
@@ -117,12 +142,14 @@ class DataPaths():
         balance_sheet_file_name = f"{ticker}.BalanceSheet.json"
         cash_flow_file_name = f"{ticker}.CashFlow.json"
         company_overview_file_name = f"{ticker}.CompanyOverview.json"
+        time_series_monthly_file_name = f"{ticker}.TimeSeriesMonthly.json"
 
         income_statement_file_path = base_path/income_statement_file_name
         earnings_file_path = base_path/earnings_file_name
         balance_sheet_file_path = base_path/balance_sheet_file_name
         cash_flow_file_path = base_path/cash_flow_file_name
         company_overview_file_path = base_path/company_overview_file_name
+        time_series_monthly_file_path = base_path/time_series_monthly_file_name
 
         if not income_statement_file_path.exists():
             raise FileNotFoundError(
@@ -139,13 +166,16 @@ class DataPaths():
         if not company_overview_file_path.exists():
             raise FileNotFoundError(
                 f"{company_overview_file_path} does not exist, and cannot be found")
-
+        if not time_series_monthly_file_path.exists():
+            raise FileNotFoundError(
+                f"{time_series_monthly_file_path} does not exist, and cannot be found")
         return cls(
             income_statement_file_path=income_statement_file_path,
             earnings_file_path=earnings_file_path,
             balance_sheet_file_path=balance_sheet_file_path,
             cash_flow_file_path=cash_flow_file_path,
-            company_overview_file_path=company_overview_file_path
+            company_overview_file_path=company_overview_file_path,
+            time_series_monthly_file_path=time_series_monthly_file_path
         )
 
 
