@@ -80,7 +80,7 @@ class RandomForestModel(BaseModel):
             'max_depth': [None] + list(np.arange(5, 110, 5)),  # Updated range
             'min_samples_split': [2, 3, 5, 7, 10],  # Updated range
             'min_samples_leaf': [1, 2, 3, 4, 5],  # Updated range
-            'max_features': ['auto', 'sqrt', 'log2'],  # Added max_features
+            'max_features': [1.0, 'sqrt', 'log2'],  # Updated 'auto' to 1.0
             'bootstrap': [True, False]  # Added bootstrap
         }
         model = RandomForestRegressor(random_state=42)
