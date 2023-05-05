@@ -7,6 +7,9 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, r2_score
+import warnings
+
+warnings.filterwarnings('ignore')
 
 
 class BaseModel:
@@ -30,7 +33,14 @@ class BaseModel:
         return X_train, X_test, y_train, y_test
 
     def feature_selection(self, X_train, y_train, n_features):
-        selector = RFE(self.model, n_features_to_select=n_features)
+        # If the model is an instance of RandomizedSearchCV, fit it first
+        if isinstance(self.model, RandomizedSearchCV):
+            self.model.fit(X_train, y_train)
+            best_estimator = self.model.best_estimator_
+        else:
+            best_estimator = self.model
+
+        selector = RFE(best_estimator, n_features_to_select=n_features)
         selector.fit(X_train, y_train)
         return selector
 
@@ -66,14 +76,16 @@ class LinearRegressionModel(BaseModel):
 class RandomForestModel(BaseModel):
     def __init__(self):
         param_dist = {
-            'n_estimators': np.arange(10, 210, 10),
-            'max_depth': [None] + list(np.arange(10, 110, 10)),
-            'min_samples_split': [2, 5, 10],
-            'min_samples_leaf': [1, 2, 4]
+            'n_estimators': np.arange(50, 310, 10),  # Updated range
+            'max_depth': [None] + list(np.arange(5, 110, 5)),  # Updated range
+            'min_samples_split': [2, 3, 5, 7, 10],  # Updated range
+            'min_samples_leaf': [1, 2, 3, 4, 5],  # Updated range
+            'max_features': ['auto', 'sqrt', 'log2'],  # Added max_features
+            'bootstrap': [True, False]  # Added bootstrap
         }
         model = RandomForestRegressor(random_state=42)
         random_search = RandomizedSearchCV(
-            model, param_dist, n_iter=100, cv=5, n_jobs=-1, random_state=42)
+            model, param_dist, n_iter=200, cv=10, n_jobs=-1, random_state=42)  # Updated cv to 10
         super().__init__(random_search)
 
 
