@@ -17,20 +17,35 @@ class BaseModel:
         self.model = model
 
     def preprocess_data(self, data):
+
+        # Log-transform the skewed features
+        skewed_features = ['CashFlow', 'BookValue', 'Earnings']
+        pt = PowerTransformer(method='yeo-johnson')
+        data[skewed_features] = pt.fit_transform(data[skewed_features])
+
         data['Earnings_to_Book_Value'] = data['Earnings'] / data['BookValue']
 
-        X = data[['CashFlow', 'BookValue',
-                  'Earnings', 'Earnings_to_Book_Value']]
+        X = data[['CashFlow', 'BookValue', 'Earnings', 'Earnings_to_Book_Value']]
         y = data['5YrReturn%']
 
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.2, random_state=42)
 
+        # Remove possible outliers
+        q1 = y_train.quantile(0.25)
+        q3 = y_train.quantile(0.75)
+        iqr = q3 - q1
+        lower_bound = q1 - 1.5 * iqr
+        upper_bound = q3 + 1.5 * iqr
+        inliers = (y_train >= lower_bound) & (y_train <= upper_bound)
+        X_train_no_outliers = X_train.loc[inliers]
+        y_train_no_outliers = y_train.loc[inliers]
+
         scaler = StandardScaler()
-        X_train = scaler.fit_transform(X_train)
+        X_train_no_outliers = scaler.fit_transform(X_train_no_outliers)
         X_test = scaler.transform(X_test)
 
-        return X_train, X_test, y_train, y_test
+        return X_train_no_outliers, X_test, y_train_no_outliers, y_test
 
     def feature_selection(self, X_train, y_train, n_features):
         # If the model is an instance of RandomizedSearchCV, fit it first
