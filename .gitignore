@@ -1,3 +1,4 @@
 venv
 *.pyc
 scripts/SimpleAlphaVantageCacher/pdb/count.txt
+value_investing_strategy/data/SimpleAlphaVantageCacher/pdb/count.txt
