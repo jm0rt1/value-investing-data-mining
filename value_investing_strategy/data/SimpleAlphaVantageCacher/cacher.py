@@ -177,9 +177,14 @@ class StockDataRetriever:
                     logging.info("done.")
                     break
 
+            # Save and clear the covered list only if all tickers have been fetched
             if len(self.data_collector.covered_list.get()) == len(list_):
                 self.data_collector.covered_list.save_and_clear()
+                logging.info("Covered list saved and cleared.")
+            else:
+                logging.info("Covered list not yet complete, continuing...")
 
+            # Update the current date variable
             current_date = datetime.datetime.now().date()
 
 

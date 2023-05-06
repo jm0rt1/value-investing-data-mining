@@ -34,6 +34,29 @@ class TestStocksInUse(unittest.TestCase):
         stocks = StocksInUse()
         stocks.load_stocks(cached)
 
+    def test_to_dataframe(self):
+        cached = [
+            "MMM",
+            "AOS",
+            "ABT",
+            "ABBV",
+            "ACN",
+            "ATVI",
+            "ADM",
+            "ADBE",
+            "ADP",
+            "AAP",
+            "AES",
+            "AFL",
+            "A",
+            "APD",
+            "AKAM"
+        ]
+        cached = StocksInUse.list_cached_tickers(
+            Path("value_investing_strategy/data/SimpleAlphaVantageCacher/output/json_cache/covered.txt"))
+        stocks = StocksInUse()
+        stocks.load_stocks(cached)
+
         df = stocks.to_data_frame()
         df.to_csv("out.csv")
         pass
