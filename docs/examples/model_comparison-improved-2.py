@@ -10,6 +10,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
 import warnings
 from tqdm import tqdm  # Import the tqdm package
+from sklearn.pipeline import Pipeline
 
 warnings.filterwarnings('ignore')
 
@@ -57,7 +58,25 @@ class BaseModel:
         else:
             best_estimator = self.model
 
-        selector = RFE(best_estimator, n_features_to_select=n_features)
+        # Create a custom feature importance getter for pipelines
+        def pipeline_feature_importances(pipeline):
+            final_step = pipeline.steps[-1][1]
+            if hasattr(final_step, 'coef_'):
+                return np.abs(final_step.coef_)
+            elif hasattr(final_step, 'feature_importances_'):
+                return final_step.feature_importances_
+            else:
+                raise ValueError(
+                    "The final step of the pipeline should have 'coef_' or 'feature_importances_' attribute.")
+
+        # Check if the best_estimator is a pipeline, and if so, use the custom feature importance getter
+        if isinstance(best_estimator, Pipeline):
+            importance_getter = pipeline_feature_importances
+        else:
+            importance_getter = 'auto'
+
+        selector = RFE(best_estimator, n_features_to_select=n_features,
+                       importance_getter=importance_getter)
         selector.fit(X_train, y_train)
         return selector
 
@@ -161,7 +180,6 @@ class StockReturnPredictor:
             print(f"R-squared: {r2:.2f}")
             print(f"Cross-validation score: {cv_score:.2f}")
             print("-----------------------------")
-
             # Predict the next 5 years return for each stock
             unique_tickers = data['Ticker'].unique()
             print(f"Predicted 5-year returns for {name}:")
@@ -174,7 +192,7 @@ class StockReturnPredictor:
                 # Calculate Earnings_to_Book_Value
                 stock_features = np.column_stack(
                     (stock_features, stock_features[:, 2] / stock_features[:, 1]))
-               # Pass selector to predict_single_stock_return method
+                # Pass selector to predict_single_stock_return method
                 predicted_return = model.predict_single_stock_return(
                     stock_features, selector)
                 # ...
