@@ -83,6 +83,7 @@ class Stock:
         cash_flows = []
         book_values = []
         earnings = []
+        five_year_return = 0
 
         # Populating lists with data from financial statements
         for i, report in enumerate(annual_reports):
@@ -106,10 +107,14 @@ class Stock:
             cash_flows.append(cf_report.operating_cashflow)
             book_values.append(bs_report.total_shareholder_equity)
 
-        five_year_return = self.time_series_monthly.calculate_stock_returns(
-            pd.to_datetime(fiscal_years[0]), pd.to_datetime(fiscal_years[-1]))
-        if five_year_return is None:
-            five_year_return = 0
+            if len(fiscal_years) > 0:
+                five_year_return = self.time_series_monthly.calculate_stock_returns(
+                    pd.to_datetime(fiscal_years[0]), pd.to_datetime(fiscal_years[-1]))
+            else:
+                five_year_return = None
+
+            if five_year_return is None:
+                five_year_return = 0
 
         # Creating a DataFrame using the populated lists
         data = {
