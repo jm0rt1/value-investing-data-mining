@@ -107,16 +107,16 @@ class Stock:
             cash_flows.append(cf_report.operating_cashflow)
             book_values.append(bs_report.total_shareholder_equity)
 
-            if len(fiscal_years) > 0:
-                five_year_prior = pd.to_datetime(
-                    fiscal_years[-1]) - pd.DateOffset(years=5)
-                five_year_return = self.time_series_monthly.calculate_stock_returns(
-                    five_year_prior, pd.to_datetime(fiscal_years[-1]))
-            else:
-                five_year_return = None
+        if len(fiscal_years) > 0:
+            five_year_prior = pd.to_datetime(
+                fiscal_years[0]) - pd.DateOffset(years=5)
+            five_year_return = self.time_series_monthly.calculate_stock_returns(
+                five_year_prior, pd.to_datetime(fiscal_years[0]))
+        else:
+            five_year_return = None
 
-            if five_year_return is None:
-                five_year_return = 0
+        if five_year_return is None:
+            five_year_return = 0
         # Creating a DataFrame using the populated lists
         data = {
             'Ticker': tickers,
