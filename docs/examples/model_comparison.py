@@ -152,16 +152,15 @@ class StockReturnPredictor:
     def __init__(self, data_file, output_file):
         self.data_file = data_file
         self.output_file = output_file
+        self.write_line_called = False
 
-    def write_line_to_file(msg: str) -> None:
-
-        mode = 'w' if not hasattr(
-            write_line_to_file, "has_been_called") else 'a'
+    def write_line_to_file(self, msg: str) -> None:
+        mode = 'w' if not self.write_line_called else 'a'
         with open(self.output_file, mode) as f:
             f.write(msg + '\n')
 
         # Set the function attribute so that we know it's been called
-        self.write_line_to_file.has_been_called = True
+        self.write_line_called = True
 
     def run(self):
         data = pd.read_csv(self.data_file)
@@ -188,14 +187,14 @@ class StockReturnPredictor:
             mse, r2 = model.evaluate(y_test, y_pred)
             cv_score = model.cross_val(X_train_selected, y_train)
 
-            write_line_to_file(f"{name}:")
-            write_line_to_file(f"Mean squared error: {mse:.2f}")
-            write_line_to_file(f"R-squared: {r2:.2f}")
-            write_line_to_file(f"Cross-validation score: {cv_score:.2f}")
-            write_line_to_file("-----------------------------")
+            self.write_line_to_file(f"{name}:")
+            self.write_line_to_file(f"Mean squared error: {mse:.2f}")
+            self.write_line_to_file(f"R-squared: {r2:.2f}")
+            self.write_line_to_file(f"Cross-validation score: {cv_score:.2f}")
+            self.write_line_to_file("-----------------------------")
             # Predict the next 5 years return for each stock
             unique_tickers = data['Ticker'].unique()
-            write_line_to_file(f"Predicted 5-year returns for {name}:")
+            self.write_line_to_file(f"Predicted 5-year returns for {name}:")
             for ticker in unique_tickers:
                 stock_data = data[data['Ticker'] == ticker]
                 # Use the most recent data for prediction
@@ -209,7 +208,7 @@ class StockReturnPredictor:
                 predicted_return = model.predict_single_stock_return(
                     stock_features, selector)
                 # ...
-                write_line_to_file(f"{ticker}: {predicted_return[0]:.2f}")
+                self.write_line_to_file(f"{ticker}: {predicted_return[0]:.2f}")
 
 
 if __name__ == "__main__":
