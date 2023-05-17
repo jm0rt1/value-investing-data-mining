@@ -1,3 +1,4 @@
+from typing import Optional
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split, RandomizedSearchCV, cross_val_score
@@ -7,6 +8,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
 from sklearn.preprocessing import StandardScaler, PowerTransformer
 from sklearn.metrics import mean_squared_error, r2_score
+
 from sklearn.pipeline import Pipeline
 import warnings
 from tqdm import tqdm  # Import the tqdm package
@@ -147,8 +149,19 @@ class SupportVectorMachineModel(BaseModel):
 
 
 class StockReturnPredictor:
-    def __init__(self, data_file):
+    def __init__(self, data_file, output_file):
         self.data_file = data_file
+        self.output_file = output_file
+
+    def write_line_to_file(msg: str) -> None:
+
+        mode = 'w' if not hasattr(
+            write_line_to_file, "has_been_called") else 'a'
+        with open(self.output_file, mode) as f:
+            f.write(msg + '\n')
+
+        # Set the function attribute so that we know it's been called
+        self.write_line_to_file.has_been_called = True
 
     def run(self):
         data = pd.read_csv(self.data_file)
@@ -175,14 +188,14 @@ class StockReturnPredictor:
             mse, r2 = model.evaluate(y_test, y_pred)
             cv_score = model.cross_val(X_train_selected, y_train)
 
-            print(f"{name}:")
-            print(f"Mean squared error: {mse:.2f}")
-            print(f"R-squared: {r2:.2f}")
-            print(f"Cross-validation score: {cv_score:.2f}")
-            print("-----------------------------")
+            write_line_to_file(f"{name}:")
+            write_line_to_file(f"Mean squared error: {mse:.2f}")
+            write_line_to_file(f"R-squared: {r2:.2f}")
+            write_line_to_file(f"Cross-validation score: {cv_score:.2f}")
+            write_line_to_file("-----------------------------")
             # Predict the next 5 years return for each stock
             unique_tickers = data['Ticker'].unique()
-            print(f"Predicted 5-year returns for {name}:")
+            write_line_to_file(f"Predicted 5-year returns for {name}:")
             for ticker in unique_tickers:
                 stock_data = data[data['Ticker'] == ticker]
                 # Use the most recent data for prediction
@@ -196,9 +209,18 @@ class StockReturnPredictor:
                 predicted_return = model.predict_single_stock_return(
                     stock_features, selector)
                 # ...
-                print(f"{ticker}: {predicted_return[0]:.2f}")
+                write_line_to_file(f"{ticker}: {predicted_return[0]:.2f}")
 
 
 if __name__ == "__main__":
-    predictor = StockReturnPredictor('out.csv')
+    predictor = StockReturnPredictor('out.csv', "output.txt")
     predictor.run()
+
+
+for model_name, model in models:
+    print(f"Training and evaluating {model_name}")
+    X_train, X_test, y_train, y_test = model.preprocess_data(data)
+    model.train(X_train, y_train)
+    y_pred = model.predict(X_test)
+    mse, r2, mae, medae, msle = model.evaluate(y_test, y_pred)
+    print(f"{model_name} - MSE: {mse:.4f}, R2: {r2:.4f}, MAE: {mae:.4f}, MedAE: {medae:.4f}, MSLE: {msle:.4f}")
