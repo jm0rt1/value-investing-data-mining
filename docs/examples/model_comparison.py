@@ -216,10 +216,4 @@ if __name__ == "__main__":
     predictor.run()
 
 
-for model_name, model in models:
-    print(f"Training and evaluating {model_name}")
-    X_train, X_test, y_train, y_test = model.preprocess_data(data)
-    model.train(X_train, y_train)
-    y_pred = model.predict(X_test)
-    mse, r2, mae, medae, msle = model.evaluate(y_test, y_pred)
-    print(f"{model_name} - MSE: {mse:.4f}, R2: {r2:.4f}, MAE: {mae:.4f}, MedAE: {medae:.4f}, MSLE: {msle:.4f}")
+
