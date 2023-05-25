@@ -214,6 +214,3 @@ class StockReturnPredictor:
 if __name__ == "__main__":
     predictor = StockReturnPredictor('out.csv', "output.txt")
     predictor.run()
-
-
-
