@@ -1,5 +1,5 @@
 
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 class QFAnalyzerSettings:
     def __init__(self):
@@ -14,9 +14,5 @@ class QFAnalyzerSettings:
         self.EPS_threshold = None
         self.yoy_revenue_growth = None
 
-    def __init__(self, ):
-        pass
-
     def load(self, path):
         pass
-
