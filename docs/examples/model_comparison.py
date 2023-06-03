@@ -8,11 +8,13 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
 from sklearn.preprocessing import StandardScaler, PowerTransformer
 from sklearn.metrics import mean_squared_error, r2_score
-
+from sklearn.ensemble import StackingRegressor
+from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 import warnings
 from tqdm import tqdm  # Import the tqdm package
 from sklearn.pipeline import Pipeline
+from sklearn.feature_selection import SelectKBest, f_regression
 
 warnings.filterwarnings('ignore')
 
@@ -53,12 +55,9 @@ class BaseModel:
         return X_train_no_outliers, X_test, y_train_no_outliers, y_test
 
     def feature_selection(self, X_train, y_train, n_features):
-        # If the model is an instance of RandomizedSearchCV, fit it first
-        if isinstance(self.model, RandomizedSearchCV):
-            self.model.fit(X_train, y_train)
-            best_estimator = self.model.best_estimator_
-        else:
-            best_estimator = self.model
+        # Fit the model first
+        self.model.fit(X_train, y_train)
+        best_estimator = self.model.best_estimator_
 
         # Create a custom feature importance getter for pipelines
         def pipeline_feature_importances(pipeline):
@@ -77,8 +76,12 @@ class BaseModel:
         else:
             importance_getter = 'auto'
 
-        selector = RFE(best_estimator, n_features_to_select=n_features,
-                       importance_getter=importance_getter)
+        # If the best_estimator is an SVM with a non-linear kernel, use SelectKBest for feature selection
+        if isinstance(best_estimator, SVR) and best_estimator.kernel != 'linear':
+            selector = SelectKBest(f_regression, k=n_features)
+        else:
+            selector = RFE(best_estimator, n_features_to_select=n_features,
+                           importance_getter=importance_getter)
         selector.fit(X_train, y_train)
         return selector
 
@@ -138,14 +141,21 @@ class RandomForestModel(BaseModel):
 
 class SupportVectorMachineModel(BaseModel):
     def __init__(self):
-        param_dist = {
+        param_grid = {
             'C': np.logspace(-3, 3, 7),
-            'epsilon': np.logspace(-3, 3, 7)
+            'epsilon': np.logspace(-3, 3, 7),
+            'kernel': ['linear', 'poly', 'rbf', 'sigmoid']
         }
-        model = SVR(kernel='linear')
-        random_search = RandomizedSearchCV(
-            model, param_dist, n_iter=100, cv=5, n_jobs=-1, random_state=42)
-        super().__init__(random_search)
+        model = SVR()
+        grid_search = GridSearchCV(
+            model, param_grid, cv=5, n_jobs=-1)
+        super().__init__(grid_search)
+
+
+class StackingModel(BaseModel):
+    def __init__(self, models):
+        model = StackingRegressor(estimators=models)
+        super().__init__(model)
 
 
 class StockReturnPredictor:
@@ -162,18 +172,35 @@ class StockReturnPredictor:
         # Set the function attribute so that we know it's been called
         self.write_line_called = True
 
+    def calculate_growth(self, data):
+        data['CashFlow_Growth'] = data.groupby(
+            'Ticker')['CashFlow'].pct_change()
+        data['BookValue_Growth'] = data.groupby(
+            'Ticker')['BookValue'].pct_change()
+        data['Earnings_Growth'] = data.groupby(
+            'Ticker')['Earnings'].pct_change()
+        return data
+
     def run(self):
         data = pd.read_csv(self.data_file)
+        data = self.calculate_growth(data)
         models = [
-            ('Linear Regression', LinearRegressionModel()),
-            ('Random Forest', RandomForestModel()),
+            # ('Linear Regression', LinearRegressionModel()),
+            # ('Random Forest', RandomForestModel()),
             ('Support Vector Machine', SupportVectorMachineModel())
         ]
 
-        # Add a progress bar for the entire process
+        # stacking_model = StackingModel(
+        #     [(name, model.model) for name, model in models])
+        # models.append(('Stacking', stacking_model))
+
         for name, model in tqdm(models, desc="Models", unit="model"):
             X_train, X_test, y_train, y_test = model.preprocess_data(data)
             model.scaler = StandardScaler().fit(X_train)
+
+            # Fit the model before calling feature_selection
+            model.model.fit(X_train, y_train)
+
             selector = model.feature_selection(X_train, y_train, n_features=3)
             X_train_selected = selector.transform(X_train)
             X_test_selected = selector.transform(X_test)
