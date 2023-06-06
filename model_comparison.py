@@ -186,8 +186,8 @@ class StockReturnPredictor:
         data = self.calculate_growth(data)
         models = [
             # ('Linear Regression', LinearRegressionModel()),
-            # ('Random Forest', RandomForestModel()),
-            ('Support Vector Machine', SupportVectorMachineModel())
+            ('Random Forest', RandomForestModel())
+            # ('Support Vector Machine', SupportVectorMachineModel())
         ]
 
         # stacking_model = StackingModel(
