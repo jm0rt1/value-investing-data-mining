@@ -144,7 +144,7 @@ class DataPaths():
         balance_sheet_file_name = f"{ticker}.BalanceSheet.json"
         cash_flow_file_name = f"{ticker}.CashFlow.json"
         company_overview_file_name = f"{ticker}.CompanyOverview.json"
-        time_series_monthly_file_name = f"{ticker}.TimeSeriesMonthly.json"
+        time_series_monthly_file_name = f"{ticker}.TimeSeriesMonthlyAdjusted.json"
 
         income_statement_file_path = base_path/income_statement_file_name
         earnings_file_path = base_path/earnings_file_name

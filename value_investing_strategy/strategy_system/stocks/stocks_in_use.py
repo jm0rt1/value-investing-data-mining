@@ -5,6 +5,7 @@ from typing import Optional
 
 import pandas as pd
 from value_investing_strategy.strategy_system.stocks.stock.stock import Stock
+import tqdm
 
 
 class StocksInUse:
@@ -22,7 +23,7 @@ class StocksInUse:
     def load_stocks(self, tickers: list[str]):
         self.stocks = []
 
-        for ticker in tickers:
+        for ticker in tqdm.tqdm(tickers):
             self.stocks.append(Stock.from_alpha_vantage_data(ticker))
 
     def to_data_frame(self):
@@ -30,7 +31,7 @@ class StocksInUse:
             raise TypeError("Stocks is unitialized")
         try:
             stock_dataframes = []
-            for stock in self.stocks:
+            for stock in tqdm.tqdm(self.stocks):
                 try:
                     stock_df = stock.to_dataframe()
                 except Exception as e:

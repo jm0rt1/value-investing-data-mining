@@ -15,7 +15,9 @@ class MonthlyData:
     high: float
     low: float
     close: float
+    adjusted_close: float
     volume: int
+    dividend_amount: float
 
 
 @dataclass
@@ -39,7 +41,7 @@ class TimeSeriesMonthly(StockComponent):
                 meta_data_dict.get("3. Last Refreshed", "")),
             time_zone=meta_data_dict.get("4. Time Zone", ""),
         )
-        raw_monthly_time_series = data.get("Monthly Time Series", {})
+        raw_monthly_time_series = data.get("Monthly Adjusted Time Series", {})
         monthly_time_series = [
             MonthlyData(
                 date=pd.to_datetime(date),
@@ -47,7 +49,9 @@ class TimeSeriesMonthly(StockComponent):
                 high=float(info.get("2. high", 0)),
                 low=float(info.get("3. low", 0)),
                 close=float(info.get("4. close", 0)),
-                volume=int(info.get("5. volume", 0)),
+                adjusted_close=float(info.get("5. adjusted close", 0)),
+                volume=int(info.get("6. volume", 0)),
+                dividend_amount=float(info.get("7. dividend amount", 0))
             )
             for date, info in raw_monthly_time_series.items()
         ]
@@ -77,8 +81,8 @@ class TimeSeriesMonthly(StockComponent):
         if initial_data is None or final_data is None or initial_data.date == final_data.date:
             return 0
 
-        initial_price = initial_data.close
-        final_price = final_data.close
+        initial_price = initial_data.adjusted_close
+        final_price = final_data.adjusted_close
 
         stock_returns = ((final_price - initial_price) / initial_price)*100
         return stock_returns
