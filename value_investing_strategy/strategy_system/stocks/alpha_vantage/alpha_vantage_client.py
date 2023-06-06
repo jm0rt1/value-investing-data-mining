@@ -34,6 +34,7 @@ class AlphaVantageClient():
         Earnings = auto()
         CashFlow = auto()
         TimeSeriesMonthly = auto()
+        TimeSeriesMonthlyAdjusted = auto()
 
     @staticmethod
     def component_file_exists(ticker: str, data_cache_path: Path, component_type: ComponentType):
@@ -173,6 +174,28 @@ class AlphaVantageClient():
                     symbol, AlphaVantageClient.TimeSeriesMonthly.FUNCTION_STR)
             save_component(symbol, path, data,
                            AlphaVantageClient.TimeSeriesMonthly.TYPE_STR)
+
+        @staticmethod
+        def from_local_file(symbol: str, cache_path: Path):
+            pass
+
+    class TimeSeriesMonthlyAdjusted(API):
+        TYPE_STR = "TimeSeriesMonthlyAdjusted"
+        FUNCTION_STR = "TIME_SERIES_MONTHLY_ADJUSTED"
+
+        @staticmethod
+        def print_json(symbol: str):
+            data = request_data(
+                symbol, AlphaVantageClient.TimeSeriesMonthlyAdjusted.FUNCTION_STR)
+            print(data)
+
+        @staticmethod
+        def to_json_file(symbol: str, path: Path, data: Optional[dict[str, str]] = None):
+            if not data:
+                data = request_data(
+                    symbol, AlphaVantageClient.TimeSeriesMonthlyAdjusted.FUNCTION_STR)
+            save_component(symbol, path, data,
+                           AlphaVantageClient.TimeSeriesMonthlyAdjusted.TYPE_STR)
 
         @staticmethod
         def from_local_file(symbol: str, cache_path: Path):

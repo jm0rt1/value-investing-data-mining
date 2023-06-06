@@ -112,7 +112,8 @@ class DataCollector:
             AlphaVantageClient.ComponentType.CompanyOverview: self.alpha_vantage_client.CompanyOverview.to_json_file,
             AlphaVantageClient.ComponentType.Earnings: self.alpha_vantage_client.Earnings.to_json_file,
             AlphaVantageClient.ComponentType.CashFlow: self.alpha_vantage_client.CashFlow.to_json_file,
-            AlphaVantageClient.ComponentType.TimeSeriesMonthly: self.alpha_vantage_client.TimeSeriesMonthly.to_json_file
+            AlphaVantageClient.ComponentType.TimeSeriesMonthly: self.alpha_vantage_client.TimeSeriesMonthly.to_json_file,
+            AlphaVantageClient.ComponentType.TimeSeriesMonthlyAdjusted: self.alpha_vantage_client.TimeSeriesMonthlyAdjusted.to_json_file
         }
 
         if ticker not in self.covered_list.get():
