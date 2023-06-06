@@ -2,6 +2,6 @@
     "ignore": [
         "src/gui/views/generated/main_window.py",
         "docs",
-        "./model_comparison.py"
+        "./src/model_comparison/model_comparison.py"
     ]
 }
