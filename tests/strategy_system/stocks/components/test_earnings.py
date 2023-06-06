@@ -3,8 +3,8 @@
 from pathlib import Path
 import unittest
 
-from value_investing_strategy.strategy_system.stocks.stock.components.earnings import EarningsReport, EarningsStatement
-from value_investing_strategy.strategy_system.stocks.stocks_in_use import StocksInUse
+from src.value_investing_strategy.strategy_system.stocks.stock.components.earnings import EarningsReport, EarningsStatement
+from src.value_investing_strategy.strategy_system.stocks.stocks_in_use import StocksInUse
 
 
 TEST_PATH = Path(
@@ -78,6 +78,6 @@ class TestEarningsStatement(unittest.TestCase):
 
     def test_all_cached(self):
         tickers = StocksInUse.list_cached_tickers(
-            Path("value_investing_strategy/data/SimpleAlphaVantageCacher/output/json_cache/covered.txt"))
+            Path("src/value_investing_strategy/data/SimpleAlphaVantageCacher/output/json_cache/covered.txt"))
 
         pass

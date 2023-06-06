@@ -2,7 +2,7 @@ import json
 import unittest
 from pathlib import Path
 
-from value_investing_strategy.strategy_system.stocks.stock.components.cash_flow import (
+from src.value_investing_strategy.strategy_system.stocks.stock.components.cash_flow import (
     CashflowReport, Cashflow)
 TEST_PATH = Path(
     "tests/test_files/inputs/strategy_system/stocks/stock/components/AAPL.CashFlow.json")

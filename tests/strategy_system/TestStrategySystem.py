@@ -1,6 +1,6 @@
 import unittest
 
-from value_investing_strategy.strategy_system.strategy_system import StrategySystem
+from src.value_investing_strategy.strategy_system.strategy_system import StrategySystem
 
 
 class TestStrategySystem(unittest.TestCase):

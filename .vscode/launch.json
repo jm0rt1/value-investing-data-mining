@@ -8,7 +8,7 @@
             "name": "Cacher",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/value_investing_strategy/data/SimpleAlphaVantageCacher/cacher.py",
+            "program": "${workspaceFolder}/src/value_investing_strategy/data/SimpleAlphaVantageCacher/cacher.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },

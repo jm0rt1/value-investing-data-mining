@@ -2,9 +2,9 @@ import json
 import unittest
 from pathlib import Path
 
-from value_investing_strategy.strategy_system.stocks.stock.components.income_statement import (
+from src.value_investing_strategy.strategy_system.stocks.stock.components.income_statement import (
     IncomeReport, IncomeStatement)
-from value_investing_strategy.strategy_system.stocks.stocks_in_use import StocksInUse
+from src.value_investing_strategy.strategy_system.stocks.stocks_in_use import StocksInUse
 
 TEST_FILE = Path(
     "tests/test_files/inputs/strategy_system/stocks/stock/components/sample_income_report.json")
@@ -130,6 +130,6 @@ class TestIncomeStatement(unittest.TestCase):
 
     def test_all_cached(self):
         tickers = StocksInUse.list_cached_tickers(
-            Path("value_investing_strategy/data/SimpleAlphaVantageCacher/output/json_cache/covered.txt"))
+            Path("src/value_investing_strategy/data/SimpleAlphaVantageCacher/output/json_cache/covered.txt"))
 
         pass

@@ -1,7 +1,7 @@
 
 from pathlib import Path
 import unittest
-from value_investing_strategy.strategy_system.stocks.stocks_in_use import StocksInUse
+from src.value_investing_strategy.strategy_system.stocks.stocks_in_use import StocksInUse
 
 
 class TestStocksInUse(unittest.TestCase):
@@ -53,7 +53,7 @@ class TestStocksInUse(unittest.TestCase):
             "AKAM"
         ]
         cached = StocksInUse.list_cached_tickers(
-            Path("value_investing_strategy/data/SimpleAlphaVantageCacher/output/json_cache/covered.txt"))
+            Path("src/value_investing_strategy/data/SimpleAlphaVantageCacher/output/json_cache/covered.txt"))
         stocks = StocksInUse()
         stocks.load_stocks(cached)
 

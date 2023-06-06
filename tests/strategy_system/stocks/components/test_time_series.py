@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime
 
-from value_investing_strategy.strategy_system.stocks.stock.components.time_series import MetaData, MonthlyData, TimeSeriesMonthly
+from src.value_investing_strategy.strategy_system.stocks.stock.components.time_series import MetaData, MonthlyData, TimeSeriesMonthly
 
 import json
 from pathlib import Path
@@ -12,13 +12,16 @@ JSON_DATA = {
         "3. Last Refreshed": "2023-01-03",
         "4. Time Zone": "US/Eastern"
     },
-    "Monthly Time Series": {
+    "Monthly Adjusted Time Series": {
         "2023-01-03": {
             "1. open": "100",
             "2. high": "110",
             "3. low": "90",
             "4. close": "105",
-            "5. volume": "1000000"
+            "5. adjusted close": "10",
+            "6. volume": "1000000",
+            "7. dividend amount": "1"
+
         }
     }
 }
@@ -31,11 +34,11 @@ class TestTimeSeriesMonthly(unittest.TestCase):
             2023, 1, 3), time_zone="US/Eastern")
         monthly_time_series = [
             MonthlyData(date=datetime(2023, 1, 3), open=100,
-                        high=110, low=90, close=105, volume=1000000),
+                        high=110, low=90, close=105, volume=1000000, adjusted_close=200, dividend_amount=10),
             MonthlyData(date=datetime(2023, 2, 3), open=105,
-                        high=115, low=95, close=110, volume=1100000),
+                        high=115, low=95, close=110, volume=1100000, adjusted_close=200, dividend_amount=10),
             MonthlyData(date=datetime(2023, 3, 3), open=110,
-                        high=120, low=100, close=115, volume=1200000),
+                        high=120, low=100, close=115, volume=1200000, adjusted_close=210, dividend_amount=10),
         ]
         self.time_series_monthly = TimeSeriesMonthly(
             meta_data, monthly_time_series)
@@ -53,7 +56,7 @@ class TestTimeSeriesMonthly(unittest.TestCase):
         stock_returns = self.time_series_monthly.calculate_stock_returns(
             initial_date, final_date)
 
-        self.assertAlmostEqual(stock_returns, 0.09523809523809523)
+        self.assertAlmostEqual(stock_returns, 5)
 
     def test_calculate_stock_returns_no_data(self):
         initial_date = datetime(2021, 1, 1)
@@ -62,7 +65,7 @@ class TestTimeSeriesMonthly(unittest.TestCase):
         stock_returns = self.time_series_monthly.calculate_stock_returns(
             initial_date, final_date)
 
-        self.assertIsNone(stock_returns)
+        self.assertEquals(stock_returns, 0)
 
     def test_from_dict(self):
 
