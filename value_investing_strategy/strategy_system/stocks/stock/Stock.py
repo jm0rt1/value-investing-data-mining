@@ -83,7 +83,7 @@ class Stock:
         cash_flows = []
         book_values = []
         earnings = []
-        five_year_return = 0
+        five_year_returns: list[float] = []
 
         # Populating lists with data from financial statements
         for i, report in enumerate(annual_reports):
@@ -101,22 +101,18 @@ class Stock:
             if bs_report is None:
                 continue
 
+            five_year_prior = pd.to_datetime(
+                fiscal_year) - pd.DateOffset(years=5)
+            five_year_return = self.time_series_monthly.calculate_stock_returns(
+                five_year_prior, pd.to_datetime(fiscal_year))
+
             tickers.append(self.ticker)
             fiscal_years.append(fiscal_year)
             earnings.append(report.net_income)
             cash_flows.append(cf_report.operating_cashflow)
             book_values.append(bs_report.total_shareholder_equity)
+            five_year_returns.append(five_year_return)
 
-        if len(fiscal_years) > 0:
-            five_year_prior = pd.to_datetime(
-                fiscal_years[0]) - pd.DateOffset(years=5)
-            five_year_return = self.time_series_monthly.calculate_stock_returns(
-                five_year_prior, pd.to_datetime(fiscal_years[0]))
-        else:
-            five_year_return = None
-
-        if five_year_return is None:
-            five_year_return = 0
         # Creating a DataFrame using the populated lists
         data = {
             'Ticker': tickers,
@@ -124,7 +120,7 @@ class Stock:
             'CashFlow': cash_flows,
             'BookValue': book_values,
             'Earnings': earnings,
-            '5YrReturn%': [five_year_return * 100] * len(tickers)
+            '5YrReturn%': five_year_returns
         }
         try:
             return pd.DataFrame(data)

@@ -70,15 +70,15 @@ class TimeSeriesMonthly(StockComponent):
             (data for data in self.monthly_time_series if data.date == nearest_date), None)
         return nearest_data
 
-    def calculate_stock_returns(self, initial_date: datetime, final_date: datetime) -> Optional[float]:
+    def calculate_stock_returns(self, initial_date: datetime, final_date: datetime) -> float:
         initial_data = self.find_nearest_data(initial_date)
         final_data = self.find_nearest_data(final_date)
 
         if initial_data is None or final_data is None or initial_data.date == final_data.date:
-            return None
+            return 0
 
         initial_price = initial_data.close
         final_price = final_data.close
 
-        stock_returns = (final_price - initial_price) / initial_price
+        stock_returns = ((final_price - initial_price) / initial_price)*100
         return stock_returns
