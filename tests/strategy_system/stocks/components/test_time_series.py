@@ -6,6 +6,7 @@ from src.value_investing_strategy.strategy_system.stocks.stock.components.time_s
 import json
 from pathlib import Path
 
+
 JSON_DATA = {
     "Meta Data": {
         "2. Symbol": "AAPL",
@@ -40,6 +41,7 @@ class TestTimeSeriesMonthly(unittest.TestCase):
             MonthlyData(date=datetime(2023, 3, 3), open=110,
                         high=120, low=100, close=115, volume=1200000, adjusted_close=210, dividend_amount=10),
         ]
+
         self.time_series_monthly = TimeSeriesMonthly(
             meta_data, monthly_time_series)
 
