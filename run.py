@@ -1,6 +1,6 @@
 
 # Running main program
-from value_investing_strategy.main import main
+from src.value_investing_strategy.main import main
 
 
 if __name__ == "__main__":
