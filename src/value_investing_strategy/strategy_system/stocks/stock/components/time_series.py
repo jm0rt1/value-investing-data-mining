@@ -86,3 +86,25 @@ class TimeSeriesMonthly(StockComponent):
 
         stock_returns = ((final_price - initial_price) / initial_price)*100
         return stock_returns
+
+    def to_dict(self) -> dict[str, Any]:
+        data = {
+            "Meta Data": {
+                "2. Symbol": self.meta_data.symbol,
+                "3. Last Refreshed": self.meta_data.last_refreshed.strftime("%Y-%m-%d"),
+                "4. Time Zone": self.meta_data.time_zone
+            },
+            "Monthly Adjusted Time Series": {
+                data.date.strftime("%Y-%m-%d"): {
+                    "1. open": data.open,
+                    "2. high": data.high,
+                    "3. low": data.low,
+                    "4. close": data.close,
+                    "5. adjusted close": data.adjusted_close,
+                    "6. volume": data.volume,
+                    "7. dividend amount": data.dividend_amount
+                }
+                for data in self.monthly_time_series
+            }
+        }
+        return data
