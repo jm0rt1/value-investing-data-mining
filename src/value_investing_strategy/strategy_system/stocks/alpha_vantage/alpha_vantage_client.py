@@ -5,8 +5,6 @@ from pathlib import Path
 import requests
 from typing import Optional
 
-from src.value_investing_strategy.strategy_system.stocks.alpha_vantage.api import API  # nopep8
-
 API_KEY = "UYOGYE4MI3DF16W2"
 
 
@@ -44,162 +42,55 @@ class AlphaVantageClient():
             return True
         return False
 
-    class IncomeStatement(API):
+    class APIComponent(API):
+        TYPE_STR = ""
+        FUNCTION_STR = ""
+
+        @staticmethod
+        def print_json(symbol: str):
+            data = request_data(
+                symbol, AlphaVantageClient.APIComponent.FUNCTION_STR)
+            print(data)
+
+        @staticmethod
+        def to_json_file(symbol: str, path: Path, data: Optional[dict[str, str]] = None):
+            if not data:
+                data = request_data(
+                    symbol, AlphaVantageClient.APIComponent.FUNCTION_STR)
+            save_component(symbol, path, data,
+                           AlphaVantageClient.APIComponent.TYPE_STR)
+
+        @staticmethod
+        def from_local_file(symbol: str, cache_path: Path):
+            pass  # Add your implementation here.
+
+    class IncomeStatement(APIComponent):
         TYPE_STR = "IncomeStatement"
         FUNCTION_STR = "INCOME_STATEMENT"
 
-        @staticmethod
-        def print_json(symbol: str):
-            data = request_data(
-                symbol, AlphaVantageClient.IncomeStatement.FUNCTION_STR)
-            print(data)
-
-        @staticmethod
-        def to_json_file(symbol: str, path: Path, data: Optional[dict[str, str]] = None):
-            if not data:
-                data = request_data(
-                    symbol, AlphaVantageClient.IncomeStatement.FUNCTION_STR)
-            save_component(symbol, path, data,
-                           AlphaVantageClient.IncomeStatement.TYPE_STR)
-
-        @staticmethod
-        def from_local_file(symbol: str, cache_path: Path):
-            pass
-
-    class BalanceSheet(API):
+    class BalanceSheet(APIComponent):
         TYPE_STR = "BalanceSheet"
         FUNCTION_STR = "BALANCE_SHEET"
 
-        @staticmethod
-        def print_json(symbol: str):
-            data = request_data(
-                symbol, AlphaVantageClient.BalanceSheet.FUNCTION_STR)
-            print(data)
-
-        @staticmethod
-        def to_json_file(symbol: str, path: Path, data: Optional[dict[str, str]] = None):
-            if not data:
-
-                data = request_data(
-                    symbol, AlphaVantageClient.BalanceSheet.FUNCTION_STR)
-            save_component(symbol, path, data,
-                           AlphaVantageClient.BalanceSheet.TYPE_STR)
-
-        @staticmethod
-        def from_local_file(symbol: str, cache_path: Path):
-            pass
-
-    class CashFlow(API):
-
+    class CashFlow(APIComponent):
         TYPE_STR = "CashFlow"
         FUNCTION_STR = "CASH_FLOW"
 
-        @staticmethod
-        def print_json(symbol: str):
-            data = request_data(
-                symbol, AlphaVantageClient.CashFlow.FUNCTION_STR)
-            print(data)
-
-        @staticmethod
-        def to_json_file(symbol: str, path: Path, data: Optional[dict[str, str]] = None):
-            if not data:
-                data = request_data(
-                    symbol, AlphaVantageClient.CashFlow.FUNCTION_STR)
-            save_component(symbol, path, data,
-                           AlphaVantageClient.CashFlow.TYPE_STR)
-
-        @staticmethod
-        def from_local_file(symbol: str, cache_path: Path):
-            pass
-
-    class Earnings(API):
-
+    class Earnings(APIComponent):
         TYPE_STR = "Earnings"
         FUNCTION_STR = "EARNINGS"
 
-        @staticmethod
-        def print_json(symbol: str):
-            data = request_data(
-                symbol, AlphaVantageClient.Earnings.FUNCTION_STR)
-            print(data)
-
-        @staticmethod
-        def to_json_file(symbol: str, path: Path, data: Optional[dict[str, str]] = None):
-            if not data:
-                data = request_data(
-                    symbol, AlphaVantageClient.Earnings.FUNCTION_STR)
-            save_component(symbol, path, data,
-                           AlphaVantageClient.Earnings.TYPE_STR)
-
-        @staticmethod
-        def from_local_file(symbol: str, cache_path: Path):
-            pass
-
-    class CompanyOverview(API):
+    class CompanyOverview(APIComponent):
         TYPE_STR = "CompanyOverview"
         FUNCTION_STR = "OVERVIEW"
 
-        @staticmethod
-        def print_json(symbol: str):
-            data = request_data(
-                symbol, AlphaVantageClient.CompanyOverview.FUNCTION_STR)
-            print(data)
-
-        @staticmethod
-        def to_json_file(symbol: str, path: Path, data: Optional[dict[str, str]] = None):
-            if not data:
-                data = request_data(
-                    symbol, AlphaVantageClient.CompanyOverview.FUNCTION_STR)
-            save_component(symbol, path, data,
-                           AlphaVantageClient.CompanyOverview.TYPE_STR)
-
-        @staticmethod
-        def from_local_file(symbol: str, cache_path: Path):
-            pass
-
-    class TimeSeriesMonthly(API):
+    class TimeSeriesMonthly(APIComponent):
         TYPE_STR = "TimeSeriesMonthly"
         FUNCTION_STR = "TIME_SERIES_MONTHLY"
 
-        @staticmethod
-        def print_json(symbol: str):
-            data = request_data(
-                symbol, AlphaVantageClient.TimeSeriesMonthly.FUNCTION_STR)
-            print(data)
-
-        @staticmethod
-        def to_json_file(symbol: str, path: Path, data: Optional[dict[str, str]] = None):
-            if not data:
-                data = request_data(
-                    symbol, AlphaVantageClient.TimeSeriesMonthly.FUNCTION_STR)
-            save_component(symbol, path, data,
-                           AlphaVantageClient.TimeSeriesMonthly.TYPE_STR)
-
-        @staticmethod
-        def from_local_file(symbol: str, cache_path: Path):
-            pass
-
-    class TimeSeriesMonthlyAdjusted(API):
+    class TimeSeriesMonthlyAdjusted(APIComponent):
         TYPE_STR = "TimeSeriesMonthlyAdjusted"
         FUNCTION_STR = "TIME_SERIES_MONTHLY_ADJUSTED"
-
-        @staticmethod
-        def print_json(symbol: str):
-            data = request_data(
-                symbol, AlphaVantageClient.TimeSeriesMonthlyAdjusted.FUNCTION_STR)
-            print(data)
-
-        @staticmethod
-        def to_json_file(symbol: str, path: Path, data: Optional[dict[str, str]] = None):
-            if not data:
-                data = request_data(
-                    symbol, AlphaVantageClient.TimeSeriesMonthlyAdjusted.FUNCTION_STR)
-            save_component(symbol, path, data,
-                           AlphaVantageClient.TimeSeriesMonthlyAdjusted.TYPE_STR)
-
-        @staticmethod
-        def from_local_file(symbol: str, cache_path: Path):
-            pass
 
 
 AVC = AlphaVantageClient
@@ -218,11 +109,11 @@ def save_component(symbol: str, base_path: Path, data: dict[str, str], type_str:
 
 
 def generate_json_file_path(base_path: Path, symbol: str, type_str: str) -> Path:
-    return Path(base_path/f"{symbol}.{type_str}.json")
+    return base_path / f"{symbol}.{type_str}.json"
 
 
-def load_component(symbol: str, base_path: Path, data: dict[str, str], type_str: str):
-    target_file = base_path/f"{symbol}.{type_str}.json"
+def load_component(symbol: str, base_path: Path, type_str: str):
+    target_file = base_path / f"{symbol}.{type_str}.json"
     if target_file.exists():
         try:
             with open(target_file, "r") as fp:
