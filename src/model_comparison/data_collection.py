@@ -33,7 +33,7 @@ def rollover_input_data():
     files.sort()
     files = files[::-1]
     for i, file in enumerate(files):
-        shutil.move(path / file, path / f"input_data_{i+1}.csv")
+        shutil.move(path / file, path / f"input_data_{i+2}.csv")
     shutil.move(path / "input_data.csv", path / "input_data_1.csv")
 
 
