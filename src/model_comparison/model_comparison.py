@@ -15,7 +15,7 @@ import warnings
 from tqdm import tqdm  # Import the tqdm package
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectKBest, f_regression
-
+import src.model_comparison.constants as constants
 warnings.filterwarnings('ignore')
 
 
@@ -238,6 +238,9 @@ class StockReturnPredictor:
                 self.write_line_to_file(f"{ticker}: {predicted_return[0]:.2f}")
 
 
-if __name__ == "__main__":
-    predictor = StockReturnPredictor('out.csv', "output.txt")
+def main():
+    predictor = StockReturnPredictor(, "output.txt")
     predictor.run()
+
+if __name__ == "__main__":
+    main()
