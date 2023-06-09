@@ -1,0 +1,9 @@
+Training time for Linear Regression: 0:00:00.057096
+Prediction time for Linear Regression: 0:00:00.046739
+-----------------------------
+Training time for Random Forest: 0:02:30.078417
+Prediction time for Random Forest: 0:00:09.577208
+-----------------------------
+Training time for Support Vector Machine: 0:00:36.600668
+Prediction time for Support Vector Machine: 0:00:00.081960
+-----------------------------
