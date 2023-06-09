@@ -2,6 +2,8 @@
 import logging
 import logging.handlers
 from src.value_investing_strategy.shared.settings import GlobalSettings
+import src.model_comparison.model_comparison
+import src.model_comparison.data_collection
 
 
 def initialize_logging():
@@ -30,12 +32,10 @@ def main():
         choice = input("Enter your choice: ")
         if choice == "1":
             print("Running the Value Investing Strategy")
-            from src.model_comparison.data_collection import main
-            main()
+            src.model_comparison.data_collection.main()
         elif choice == "2":
             print("Comparing the Value Investing Strategy to the S&P 500")
-            from src.model_comparison.model_comparison import main
-            main()
+            src.model_comparison.model_comparison.main()
         elif choice == "3":
             print("Exiting the Program")
             logging.info("Program Ended")
