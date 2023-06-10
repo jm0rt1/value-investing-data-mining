@@ -4,9 +4,9 @@ import warnings
 from tqdm import tqdm  # Import the tqdm package
 from sklearn.preprocessing import StandardScaler, PowerTransformer
 
-from src.model_comparison.LinearRegressionModel import LinearRegressionModel
-from src.model_comparison.RandomForestModel import RandomForestModel
-from src.model_comparison.StackingModel import StackingModel
+from src.model_comparison.ml_models.LinearRegressionModel import LinearRegressionModel
+from src.model_comparison.ml_models.RandomForestModel import RandomForestModel
+from src.model_comparison.ml_models.StackingModel import StackingModel
 from src.model_comparison.SupportVectorMachineModel import SupportVectorMachineModel
 warnings.filterwarnings('ignore')
 

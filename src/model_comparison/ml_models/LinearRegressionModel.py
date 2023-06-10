@@ -1,4 +1,4 @@
-from src.model_comparison.BaseModel import BaseModel
+from src.model_comparison.ml_models.BaseModel import BaseModel
 
 
 import numpy as np
