@@ -2,7 +2,7 @@
 import logging
 import logging.handlers
 from src.value_investing_strategy.shared.settings import GlobalSettings
-import model_comparison.ml_models.model_comparison
+import model_comparison.model_comparison
 import src.model_comparison.data_collection
 
 
@@ -35,7 +35,7 @@ def main():
             src.model_comparison.data_collection.main()
         elif choice == "2":
             print("Comparing the Value Investing Strategy to the S&P 500")
-            model_comparison.ml_models.model_comparison.main()
+            model_comparison.model_comparison.main()
         elif choice == "3":
             print("Exiting the Program")
             logging.info("Program Ended")
