@@ -3,6 +3,14 @@
 ## Summary:
 This project was developed on M1 (Arm64 based) based Mac, using Microsoft's Visual Studio Code Version: 1.72.0. The intention is to be compatible with any system through Python's multiplatform nature. However, this project will only be tested on Windows 10 amd64 machine and the latest MacOS version on an Arm64 machine. 
 
+This program contains the following directories of interest under src:
+- `./src/` - contains the source code for the program
+- `./src/model_comparison/` - contains the actual experiment code
+- `./src/model_comparison/models/` - contains the models used in the experiment
+- `./src/value_investing_strategy/` - contains the auxilary code for use in data collection
+
+
+
 ## Scope:
     1. Definitions
     2. Prerequisites
